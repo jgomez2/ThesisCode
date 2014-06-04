@@ -1,0 +1,281 @@
+#include "TMatrixD.h"
+#include "TMatrixDEigen.h"
+#include "TProfile.h"
+#include "TProfile2D.h"
+#include "TComplex.h"
+#include "TVectorD.h"
+
+
+//Functions that will be used
+void Initialize();
+void MatrixValues();
+void EigenValues();
+
+///////////////////////////////
+
+Double_t eta_bin[49]={-2.4,-2.3,-2.2,-2.1,
+		      -2.0,-1.9,-1.8,-1.7,
+		      -1.6,-1.5,-1.4,-1.3,
+		      -1.2,-1.1,-1.0,-0.9,
+		      -0.8,-0.7,-0.6,-0.5,
+		      -0.4,-0.3,-0.2,-0.1,
+		      0.0,0.1,0.2,0.3,
+		      0.4,0.5,0.6,0.7,
+		      0.8,0.9,1.0,1.1,
+		      1.2,1.3,1.4,1.5,
+		      1.6,1.7,1.8,1.9,
+		      2.0,2.1,2.2,2.3,
+		      2.4};
+Double_t eta_center[48]={-2.35,-2.25,-2.15,-2.05,
+			 -1.95,-1.85,-1.75,-1.65,
+			 -1.55,-1.45,-1.35,-1.25,
+			 -1.15,-1.05,-0.95,-0.85,
+			 -0.75,-0.65,-0.55,-0.45,
+			 -0.35,-0.25,-0.15,-0.5,
+			 0.05,0.15,0.25,0.35,
+			 0.45,0.55,0.65,0.75,
+			 0.85,0.95,1.05,1.15,
+			 1.25,1.35,1.45,1.55,
+			 1.65,1.75,1.85,1.95,
+			 2.05,2.15,2.25,2.35};
+Double_t eta_lo[48];
+Double_t eta_hi[48];
+eta_lo[0]=-2.4; eta_hi[0]=-2.3;
+eta_lo[1]=-2.3; eta_hi[1]=-2.2;
+eta_lo[2]=-2.2; eta_hi[2]=-2.1;
+eta_lo[3]=-2.1; eta_hi[3]=-2;
+eta_lo[4]=-2; eta_hi[4]=-1.9;
+eta_lo[5]=-1.9; eta_hi[5]=-1.8;
+eta_lo[6]=-1.8; eta_hi[6]=-1.7;
+eta_lo[7]=-1.7; eta_hi[7]=-1.6;
+eta_lo[8]=-1.6; eta_hi[8]=-1.5;
+eta_lo[9]=-1.5; eta_hi[9]=-1.4;
+eta_lo[10]=-1.4; eta_hi[10]=-1.3;
+eta_lo[11]=-1.3; eta_hi[11]=-1.2;
+eta_lo[12]=-1.2; eta_hi[12]=-1.1;
+eta_lo[13]=-1.1; eta_hi[13]=-1;
+eta_lo[14]=-1; eta_hi[14]=-0.9;
+eta_lo[15]=-0.9; eta_hi[15]=-0.8;
+eta_lo[16]=-0.8; eta_hi[16]=-0.7;
+eta_lo[17]=-0.7; eta_hi[17]=-0.6;
+eta_lo[18]=-0.6; eta_hi[18]=-0.5;
+eta_lo[19]=-0.5; eta_hi[19]=-0.4;
+eta_lo[20]=-0.4; eta_hi[20]=-0.3;
+eta_lo[21]=-0.3; eta_hi[21]=-0.2;
+eta_lo[22]=-0.2; eta_hi[22]=-0.1;
+eta_lo[23]=-0.1; eta_hi[23]=0.0;
+eta_lo[24]=0.0; eta_hi[24]=0.1;
+eta_lo[25]=0.1; eta_hi[25]=0.2;
+eta_lo[26]=0.2; eta_hi[26]=0.3;
+eta_lo[27]=0.3; eta_hi[27]=0.4;
+eta_lo[28]=0.4; eta_hi[28]=0.5;
+eta_lo[29]=0.5; eta_hi[29]=0.6;
+eta_lo[30]=0.6; eta_hi[30]=0.7;
+eta_lo[31]=0.7; eta_hi[31]=0.8;
+eta_lo[32]=0.8; eta_hi[32]=0.9;
+eta_lo[33]=0.9; eta_hi[33]=1;
+eta_lo[34]=1; eta_hi[34]=1.1;
+eta_lo[35]=1.1; eta_hi[35]=1.2;
+eta_lo[36]=1.2; eta_hi[36]=1.3;
+eta_lo[37]=1.3; eta_hi[37]=1.4;
+eta_lo[38]=1.4; eta_hi[38]=1.5;
+eta_lo[39]=1.5; eta_hi[39]=1.6;
+eta_lo[40]=1.6; eta_hi[40]=1.7;
+eta_lo[41]=1.7; eta_hi[41]=1.8;
+eta_lo[42]=1.8; eta_hi[42]=1.9;
+eta_lo[43]=1.9; eta_hi[43]=2;
+eta_lo[44]=2; eta_hi[44]=2.1;
+eta_lo[45]=2.1; eta_hi[45]=2.2;
+eta_lo[46]=2.2; eta_hi[46]=2.3;
+eta_lo[47]=2.3; eta_hi[47]=2.4;
+
+Double_t finalvalues[48];
+Double_t pi=TMath::Pi();
+Int_t nthharmonic=2;
+Int_t N[48];
+TComplex filler=0;
+TComplex Qn[48];
+TComplex Qhat[48];
+TComplex Qstarhat[48];
+TComplex calc;
+Int_t Nevents=0;
+Int_t Centrality=0;
+TMatrixD Cnn(48,48);
+Cnn.Zero();
+//TVectorD eigenvalues;
+//TMatrixD eigenvec;
+Int_t NumberOfHits=0;
+Float_t pT=0.;
+Float_t phi=0.;
+Float_t eta=0.;
+Int_t NumberOfEvents=0;
+//NumberOfEvents=3;
+//NumberOfEvents=15;
+//NumberOfEvents=100;
+//NumberOfEvents=10000;
+NumberOfEvents=2000000;
+TChain* chain2;
+
+//TProfile to find average number of particles per bin
+TProfile *AverageMultiplicity;
+
+//TProfile2D to store Matrix Values
+TProfile2D *MatrixElements;
+
+
+
+////////////////////////////
+/////   MAIN //////////////
+////////////////////////////
+Int_t E2(){
+  Initialize();
+  MatrixValues();
+  EigenValues();
+  return 0;
+}
+
+void Initialize(){
+  for (Int_t i=0;i<48;i++)  {
+    N[i]=0;
+    Qn[i]=TComplex(0.);
+    finalvalues[i]=0.;
+    Qhat[i]=TComplex(0.);
+    Qstarhat[i]=TComplex(0.);
+  }
+  chain2 = new TChain("hiGoodTightMergedTracksTree");
+  //  chain2->Add("Forward*.root");
+  chain2->Add("/hadoop/store/user/jgomez2/ForwardTrees/2010/PanicTime/Forward*");
+
+  //TProfile to find average number of particles per bin
+  AverageMultiplicity = new TProfile("Nbar","<N>",48,eta_bin);
+
+  //TProfile2D to store Matrix Values
+  MatrixElements = new TProfile2D("CKK","C_{kk}",48,eta_bin,48,eta_bin);
+
+}
+
+void MatrixValues(){
+
+  for (Int_t i=0;i<NumberOfEvents;i++)
+    {
+      if ( !(i%10000) ) cout << " 1st round, event # " << i << " / " << NumberOfEvents << endl;
+
+      chain2->GetEntry(i);
+
+      //Grab the Track Leaves
+      NumTracks= (TLeaf*) chain2->GetLeaf("nTracks");
+      TrackMom= (TLeaf*) chain2->GetLeaf("pt");
+      TrackPhi= (TLeaf*) chain2->GetLeaf("phi");
+      TrackEta= (TLeaf*) chain2->GetLeaf("eta");
+
+      //Grab the Centrality Leaves
+      CENTRAL= (TLeaf*) chain2->GetLeaf("bin");
+      Centrality=0;
+      Centrality=CENTRAL->GetValue();
+      //     std::cout<<"Centrality was "<<" "<<Centrality<<std::endl;
+      if (Centrality<8 || Centrality>11) continue;
+
+
+      Nevents+=1;
+
+      //Zero the multiplicity
+      for (Int_t zeroer=0;zeroer<48;zeroer++)
+        {
+          N[zeroer]=0;
+          Qn[zeroer]=TComplex(0.);
+        }
+
+      NumberOfHits=NumTracks->GetValue();
+      for (Int_t track_iter=0;track_iter<NumberOfHits;track_iter++)
+        {
+          pT=0.;
+          phi=0.;
+          eta=0.;
+          pT=TrackMom->GetValue(track_iter);
+          phi=TrackPhi->GetValue(track_iter);
+          eta=TrackEta->GetValue(track_iter);
+	  //if(fabs(eta)>0.6) continue;
+	  
+	  for(Int_t bin_iter=0;bin_iter<48;bin_iter++) {
+	    if((eta<eta_hi[bin_iter]) && (eta>eta_lo[bin_iter]))
+	      {
+		//std::cout<<"Particle eta was"<<" "<<eta<<" and the bin was "<<bin_iter<<std::endl;
+		N[bin_iter]+=1;
+	    	Qn[bin_iter]+=TComplex::Exp(TComplex::I()*nthharmonic*phi);
+		Qhat[bin_iter]+=TComplex::Exp(TComplex::I()*nthharmonic*phi);
+		Qstarhat[bin_iter]+=TComplex::Exp(-TComplex::I()*nthharmonic*phi);
+	      }//if it falls in the eta bin
+	  }
+        }//end of loop over tracks
+
+      //Fill Multiplicity Plot
+      for (Int_t bin_iter=0;bin_iter<48;bin_iter++)
+        {
+          AverageMultiplicity->Fill(eta_center[bin_iter],N[bin_iter]);
+        }//end of Filling Multiplicity Plots
+
+
+      for (Int_t row_iter=0;row_iter<48;row_iter++)
+	{
+	  for (Int_t col_iter=0;col_iter<48;col_iter++)
+	    {
+	      filler=0;
+	      filler=Qn[row_iter]*TComplex::Conjugate(Qn[col_iter]);
+	      if(row_iter!=col_iter)
+		{
+		  MatrixElements->Fill(eta_center[row_iter],eta_center[col_iter],filler.Re());
+//MatrixElements->Fill(eta_center[row_iter],eta_center[col_iter],N[row_iter]);
+		}//off diagonal terms
+	      else if(row_iter==col_iter)
+		{
+//MatrixElements->Fill(eta_center[row_iter],eta_center[col_iter],N[row_iter]);
+//MatrixElements->Fill(eta_center[row_iter],eta_center[col_iter],filler.Re());
+		  MatrixElements->Fill(eta_center[row_iter],eta_center[col_iter],(filler.Re()-N[row_iter]));
+		}//diagonal terms
+	    }//end of loop over columns
+	}//end of loop over rows
+      
+    }//end of loop over events
+
+}//end of MatrixValues Function
+
+void EigenValues(){
+
+  //Actually fill the matrix
+  for (Int_t row_iter=0;row_iter<48;row_iter++)
+    {
+      for (Int_t col_iter=0;col_iter<48;col_iter++)
+	{
+	  calc=TComplex(0.);
+	  calc=(Qhat[row_iter]/Nevents)*(Qstarhat[col_iter]/Nevents);
+	  Cnn[row_iter][col_iter]=(MatrixElements->GetBinContent(MatrixElements->FindBin(eta_center[row_iter],eta_center[col_iter])))-calc.Re();
+	}//end of loop over columns
+    }//end of loop over rows
+
+  //Find EigenValues of the Matrix
+  TMatrixDEigen me(Cnn);
+  TVectorD eigenvalues=me.GetEigenValues();
+  TMatrixD eigenvec=me.GetEigenVectors();
+  
+  std::cout<<"EigenValues are "<<std::endl;
+  eigenvalues.Print();
+
+  std::cout<<" "<<std::endl;
+  std::cout<<"EigenVectors are "<<std::endl;
+  eigenvec.Print();
+  
+  ofstream myout;
+  //  myout.open("EigenValueLargeRangePts.txt");
+  myout.open("EigenValueCorrectedLargePts.txt");
+  for(int i=0;i<48;i++)
+    {
+      finalvalues[i]=(TMath::Sqrt(eigenvalues(0))*eigenvec[i][0])/(AverageMultiplicity->GetBinContent(i+1));
+      if (i==0) myout<<"Double_t V2Eigen[48]={"<<finalvalues[i]<<","<<endl;
+      else if(i==47) myout<<finalvalues[i]<<"};"<<endl;
+      else myout<<finalvalues[i]<<","<<endl;
+    }
+
+  myout.close();
+  
+}//End of EigenValues Function
+

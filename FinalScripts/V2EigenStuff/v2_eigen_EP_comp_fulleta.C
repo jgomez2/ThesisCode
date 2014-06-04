@@ -1,0 +1,184 @@
+{
+
+  //Published v2 CMS data
+  Float_t v2EPdata[12]={0.086615,0.08539,0.087685,0.089492,0.090768,0.091231,0.091322,0.09063,0.089598,0.087703,0.085972,0.08642};
+  Float_t v2EPerror[12]={0.00016907,0.00013402,9.0741e-05,7.8406e-05,7.4821e-05,7.2467e-05,7.293e-05,7.6235e-05,8.0216e-05,9.3126e-05,0.0001361,0.00017116};
+  Float_t v2EPerrorsys[12]={0.0019921,0.001964,0.0013153,0.0013424,0.0013615,0.0013685,0.0013698,0.0013594,0.001344,0.0013155,0.0019774,0.00017116};
+
+  //Eigen value method data points
+  
+
+  // <Q Q*> - N
+  /*  Float_t v2Eigendata[24]={.0995,.1049,.1039939,.100368,
+			   .096196,.092382,.0917583048,.0908,
+			   .09069,.089417,.08851,.0882,
+			   .08825,.0885,.08998,.0918,
+			   .09236,.093415,.0953,.0997,
+			   .10272,.1027,.099075,.0959};
+			   
+			   
+
+  */
+
+  //<Q Q*> - N
+  
+
+
+  //<Q Q*> - N - <Q><Q*>
+  Double_t V2Eigen[48]={0.102732,
+0.105113,
+0.107604,
+0.108014,
+0.104986,
+0.103968,
+0.1005,
+0.0976734,
+0.0957997,
+0.0929594,
+0.0912408,
+0.0894038,
+0.0901965,
+0.0896675,
+0.089763,
+0.0889971,
+0.0900869,
+0.0892209,
+0.0894417,
+0.0881212,
+0.0880427,
+0.0881481,
+0.0875562,
+0.0875541,
+0.0875533,
+0.0882287,
+0.087842,
+0.0878579,
+0.0888507,
+0.0890593,
+0.0901184,
+0.090264,
+0.0900526,
+0.0902432,
+0.090503,
+0.0904713,
+0.0912358,
+0.0917013,
+0.0942434,
+0.0958112,
+0.0975344,
+0.0986992,
+0.100493,
+0.101867,
+0.102505,
+0.102876,
+0.103334,
+0.105353};
+  // Float_t eta_bin[13]={-0.6,-0.5,-0.4,-0.3,-0.2,-0.1,0.0,0.1,0.2,0.3,0.4,0.5,0.6};
+  //Float_t eta_bin[25]={-2.4,-2.2,-2.0,-1.8,-1.6,-1.4,-1.2,-1.0,-0.8,-0.6,-0.4,-0.2,0.0,0.2,0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.2,2.4};
+  Float_t eta_bin[49]={-2.4,-2.3,-2.2,-2.1,
+			-2.0,-1.9,-1.8,-1.7,
+			-1.6,-1.5,-1.4,-1.3,
+			-1.2,-1.1,-1.0,-0.9,
+			-0.8,-0.7,-0.6,-0.5,
+			-0.4,-0.3,-0.2,-0.1,
+			0.0,0.1,0.2,0.3,
+			0.4,0.5,0.6,0.7,
+			0.8,0.9,1.0,1.1,
+			1.2,1.3,1.4,1.5,
+			1.6,1.7,1.8,1.9,
+			2.0,2.1,2.2,2.3,
+			2.4};
+  
+
+TH1F* V2Eta = new TH1F("V2Eta","V_{2}{#eta} 20%-30%",48,eta_bin);
+  V2Eta->SetXTitle("#eta");
+  V2Eta->SetYTitle("v_{2}");
+  gStyle->SetTitleX(0.5);
+  gStyle->SetTitleAlign(23);
+  V2Eta->SetMarkerStyle(33);
+  V2Eta->SetMarkerColor(kGreen+3);
+  V2Eta->GetXaxis()->CenterTitle(1);
+  V2Eta->GetYaxis()->CenterTitle(1);
+  V2Eta->GetYaxis()->SetRangeUser(0.01,0.14);
+  V2Eta->GetXaxis()->SetTickLength(0.02);
+  V2Eta->GetYaxis()->SetTickLength(0.02);
+  gStyle->SetPadTickY(1);
+  gStyle->SetPadTickX(1);
+
+
+  TH1F* V2EtaOfficial = new TH1F("V2Eta1","V_{2}{#eta} 20%-30%",48,eta_bin);
+  V2EtaOfficial->SetXTitle("#eta");
+  V2EtaOfficial->SetYTitle("v_{2}");
+  gStyle->SetTitleX(0.5);
+  gStyle->SetTitleAlign(23);
+  V2EtaOfficial->SetMarkerStyle(20);
+  V2EtaOfficial->SetMarkerColor(2);
+  V2EtaOfficial->GetXaxis()->CenterTitle(1);
+  V2EtaOfficial->GetYaxis()->CenterTitle(1);
+  V2EtaOfficial->GetXaxis()->SetTickLength(0.02);
+  V2EtaOfficial->GetYaxis()->SetTickLength(0.02);
+  gStyle->SetPadTickY(1);
+  gStyle->SetPadTickX(1);
+
+
+  for( Int_t i=1;i<49;i++)
+    {
+      V2Eta->SetBinContent(i,V2Eigen[i-1]);
+    }
+  
+  V2EtaOfficial->SetBinContent(2,v2EPdata[0]);
+  V2EtaOfficial->SetBinContent(6,v2EPdata[1]);
+  V2EtaOfficial->SetBinContent(10,v2EPdata[2]);
+  V2EtaOfficial->SetBinContent(14,v2EPdata[3]);
+  V2EtaOfficial->SetBinContent(18,v2EPdata[4]);
+  V2EtaOfficial->SetBinContent(22,v2EPdata[5]);
+  V2EtaOfficial->SetBinContent(26,v2EPdata[6]);
+  V2EtaOfficial->SetBinContent(30,v2EPdata[7]);
+  V2EtaOfficial->SetBinContent(34,v2EPdata[8]);
+  V2EtaOfficial->SetBinContent(38,v2EPdata[9]);
+  V2EtaOfficial->SetBinContent(42,v2EPdata[10]);
+  V2EtaOfficial->SetBinContent(46,v2EPdata[11]);
+
+
+  //      V2EtaOfficial->SetBinContent((j+2)+(4*(j-1)),v2EPdata[j-1]);
+  //  V2EtaOfficial->SetBinError((j+2)+(4*(j-1)),TMath::Sqrt((v2EPerror[j-1]*v2EPerror[j-1])+(v2EPerrorsys[j-1]*v2EPerrorsys[j-1])));
+
+
+  new TCanvas;
+  V2Eta->SetStats(0);
+  V2Eta->SetTitle(0);
+  V2Eta->Draw("P");
+  V2EtaOfficial->SetStats(0);
+  V2EtaOfficial->SetTitle(0);
+  V2EtaOfficial->Draw("PE2same");
+
+  
+          ///Legend///
+      TLegend* leg= new TLegend(0.35,0.23,0.55,0.48,"v_{2}","brNDC");
+      leg->AddEntry(V2Eta->GetName(),"v_{2} (EigenValue Method)   20-30%","lp");
+      leg->AddEntry(V2EtaOfficial->GetName(),"v_{2}(EP) PRC.87.014902   25-30%","lp");
+      leg->SetFillColor(kWhite);
+      leg->SetTextFont(43);
+      leg->SetTextSize(16);
+      leg->SetBorderSize(0);
+      leg->Draw();
+      //////////////////
+      ///TLatex////
+      /*  texa=new TLatex(0.64,0.74,"20-30%");
+  texa->SetNDC();
+  texa->SetTextSize(18);
+  texa->SetTextFont(43);
+  texa->Draw();*/
+  tex=new TLatex(0.52,0.80,"PbPb  #sqrt{s_{NN}}\ =\ 2.76TeV");
+  tex->SetNDC();
+  tex->SetTextSize(18);
+  tex->SetTextFont(43);
+  tex->Draw();
+  tex1=new TLatex(0.18,0.82,"CMS Preliminary");
+  tex1->SetNDC();
+  tex1->SetTextFont(43);
+  tex1->SetTextSize(16);
+  tex1->SetTextColor(kRed);
+  tex1->Draw(); 
+
+}
