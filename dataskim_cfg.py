@@ -2,7 +2,7 @@ import FWCore.ParameterSet.Config as cms
 import sys
 
 
-process = cms.Process("HIGHPTSKIM")
+process = cms.Process("UMDSKIM")
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
 process.load('Configuration/StandardSequences/Reconstruction_cff')
@@ -42,7 +42,7 @@ process.load("HeavyIonsAnalysis.Configuration.hfCoincFilter_cff")
 # selection of non-fake vertex (i.e. at least one pixel track)
 process.primaryVertexFilter = cms.EDFilter("VertexSelector",
                                            src = cms.InputTag("hiSelectedVertex"),
-                                           cut = cms.string("!isFake && abs(z) <= 25 && position.Rho <= 2"),
+                                           cut = cms.string("!isFake && abs(z) <= 10 && position.Rho <= 2"),
                                            filter = cms.bool(True),   # otherwise it won't filter the events, instead making an empty vertex collection
                                            )
 
