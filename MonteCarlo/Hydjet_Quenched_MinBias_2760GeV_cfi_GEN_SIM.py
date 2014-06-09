@@ -301,7 +301,7 @@ process.AftBurner.modv1 = cms.InputTag("0.1")
 process.AftBurner.modv2 = cms.InputTag("0.05")
 process.AftBurner.fluct_v1 = cms.double(0.03)
 process.AftBurner.fluct_v2 = cms.double(0.01)
-process.AftBurner.modmethod = cms.int32(2)
+process.AftBurner.modmethod = cms.int32(1)
 
 
 ##Quan's process
