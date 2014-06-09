@@ -297,10 +297,10 @@ process.generator = cms.EDFilter("HydjetGeneratorFilter",
 
 
 ##Quan's afterburner settings
-process.AftBurner.modv1 = cms.InputTag("0.0")
+process.AftBurner.modv1 = cms.InputTag("0.1")
 process.AftBurner.modv2 = cms.InputTag("0.05")
-process.AftBurner.fluct_v1 = cms.double(0.0)
-process.AftBurner.fluct_v1 = cms.double(0.01)
+process.AftBurner.fluct_v1 = cms.double(0.03)
+process.AftBurner.fluct_v2 = cms.double(0.01)
 process.AftBurner.modmethod = cms.int32(1)
 
 
