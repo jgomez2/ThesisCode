@@ -148,7 +148,7 @@ process.RECODEBUGoutput = cms.OutputModule("PoolOutputModule",
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:starthi_HIon', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, 'STARTHI53_LV1::All', '')
 
 # Path and EndPath definitions
 process.digitisation_step = cms.Path(process.pdigi)
