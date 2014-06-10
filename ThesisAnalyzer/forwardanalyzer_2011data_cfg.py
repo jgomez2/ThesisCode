@@ -42,19 +42,23 @@ process.HeavyIonGlobalParameters = cms.PSet(
     )
 
 
+##########################
+### MERGER ################
+##########################
+process.load("jgomez2/TrackMerging/HiMultipleTrackListMerger_cff")
+process.merge_step = cms.Path(process.hiGoodMergedTracks)
+#####################################################################
+
 process.fwdana = cms.EDAnalyzer('ForwardAnalyzer_2011')
 
 process.upcvertexana = cms.EDAnalyzer('UPCVertexAnalyzer',
                                       vertexCollection=cms.string("hiSelectedVertex")
                                       )
 
-process.upcselectedtrackana = cms.EDAnalyzer('UPCTrackAnalyzer',
-                                          trackCollection=cms.string("hiGeneralTracks")
+process.goodmergedtracks = cms.EDAnalyzer('UPCTrackAnalyzer',
+                                          trackCollection=cms.string("hiGoodMergedTracks")
                                              )
 
-process.pixeltracks = cms.EDAnalyzer('UPCTrackAnalyzer',
-                                     trackCollection=cms.string("hiConformalPixelTracks")
-                                     )
 
 process.calotowerana = cms.EDAnalyzer('CaloTowerAnalyzer',
                                       towerCollection=cms.string("CaloTower")
@@ -66,13 +70,17 @@ process.upccentralityana = cms.EDAnalyzer('UPCCentralityAnalyzer',
 
 process.castorana = cms.EDAnalyzer('CastorAnalyzer')
 
-process.trackSequence = cms.Sequence(process.upcvertexana*process.upcselectedtrackana*process.pixeltracks)
-process.forwardSequence = cms.Sequence(process.fwdana*process.castorana)
-process.caloSequence = cms.Sequence(process.calotowerana)
-process.centralitySequence = cms.Sequence(process.upccentralityana)
 
-process.path = cms.Path(process.trackSequence+
-                        process.forwardSequence+
-                        process.caloSequence+
-                        process.centralitySequence
-                        )
+
+process.analyzer_step = cms.Path(process.upcvertexana
+                                 *process.goodmergedtracks
+                                 *process.fwdana
+                                 *process.castorana
+                                 *process.calotowerana
+                                 *process.upccentralityana
+                                 )
+
+
+process.schedule = cms.Schedule(process.merge_step,
+                                process.analyzer_step)
+                               
