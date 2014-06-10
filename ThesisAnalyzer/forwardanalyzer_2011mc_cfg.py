@@ -34,31 +34,6 @@ process.TFileService = cms.Service("TFileService",
 from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'GR_R_53_LV6::All', '')
 
-###########################
-###JAIMES ED PRODUCER######
-###########################
-#process.JaimesTracks = cms.EDProducer('TestProducer')
-process.load("ProdTutorial/TestProducer/testproducer_cfi")
-process.new_step= cms.Path(process.jaimeTracks)
-
-##########################
-### MERGER ################
-##########################
-process.load("jgomez2/TrackMerging/HiMultipleTrackListMerger_cff")
-process.merge_step = cms.Path(process.hiGoodMergedTracks)
-
-#######################################################
-####Track Associator###################################
-process.load("SimTracker.TrackAssociation.trackingParticleRecoTrackAsssociation_cfi")
-process.tpRecoAssochiGoodMergedTracks = process.trackingParticleRecoTrackAsssociation.clone()
-process.tpRecoAssochiGoodMergedTracks.label_tr = cms.InputTag("hiGoodMergedTracks")
-
-process.load("SimTracker.TrackAssociation.TrackAssociatorByHits_cfi")
-process.TrackAssociatorByHits.SimToRecoDenominator = cms.string('reco')
-
-process.associator_step=cms.Path(process.tpRecoAssochiGoodMergedTracks)
-################################################################
-###########################################################
 
 process.HeavyIonGlobalParameters = cms.PSet(
     centralityVariable = cms.string("HFtowers"),
@@ -104,10 +79,7 @@ process.analyzer_step = cms.Path(process.upcvertexana
 #process.centralitySequence = cms.Sequence(process.upccentralityana)
 
 #Schedule Definition
-process.schedule = cms.Schedule(process.merge_step,
-                                process.associator_step,
-                                process.new_step,
-                                process.analyzer_step)
+process.schedule = cms.Schedule(process.analyzer_step)
 
 
 
