@@ -90,7 +90,7 @@ process.output.outputCommands += ['keep *_hiSelectedVertex_*_*']
 ##Keep CaloTowers
 process.output.outputCommands += ['keep *_towerMaker_*_*']
 ##Keep ZDC Digis
-process.output.outputCommands += ['keep *_hcalDigis_*_*']
+process.output.outputCommands += ['keep ZDCDataFramesSorted_hcalDigis_*_*']
 ##Keep Castor RecHits
 process.output.outputCommands += ['keep *_castorreco_*_*']
 ##Keep Centrality
