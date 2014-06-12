@@ -123,7 +123,9 @@ process.noBSChalo = process.hltLevel1GTSeed.clone(
     L1SeedsLogicalExpression = cms.string('NOT (36 OR 37 OR 38 OR 39)')
     )
 
-process.filter_step = cms.Path(process.hltMinBiasHFOrBSC*process.hfCoincFilter3*process.siPixelRecHits*process.hltPixelClusterShapeFilter*process.noBSChalo*process.primaryVertexFilter*process.hiConformalPixelTracks)
+#process.filter_step = cms.Path(process.hltMinBiasHFOrBSC*process.hfCoincFilter3*process.siPixelRecHits*process.hltPixelClusterShapeFilter*process.noBSChalo*process.primaryVertexFilter*process.hiConformalPixelTracks)
+process.filter_step = cms.Path(process.hfCoincFilter3*process.siPixelRecHits*process.hltPixelClusterShapeFilter*process.noBSChalo*process.primaryVertexFilter*process.hiConformalPixelTracks)
+
 ###############################################################
 ###############################################################
 
