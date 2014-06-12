@@ -139,7 +139,7 @@ process.RECODEBUGoutput = cms.OutputModule("PoolOutputModule",
                                            eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
                                            outputCommands = process.RECODEBUGEventContent.outputCommands,
                                            fileName = cms.untracked.string('HLTReco.root'),
-                                           SelectEvents = cms.untracked.PSet(SelectEvents = cms.vstring('filter_step')),
+                                           #SelectEvents = cms.untracked.PSet(SelectEvents = cms.vstring('filter_step')),
                                            dataset = cms.untracked.PSet(
     filterName = cms.untracked.string(''),
     dataTier = cms.untracked.string('')
@@ -168,7 +168,7 @@ process.schedule = cms.Schedule(process.digitisation_step,
 process.schedule.extend(process.HLTSchedule)
 process.schedule.extend([process.raw2digi_step,
                          process.reconstruction_step,
-                         process.filter_step,
+                         #process.filter_step,
                          #process.pixel_step,
                          process.merge_step,
                          process.associator_step,
