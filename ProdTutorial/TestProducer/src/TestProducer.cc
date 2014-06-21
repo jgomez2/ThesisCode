@@ -1,60 +1,4 @@
-// system include files
-#include <memory>
-
-// user include files
-#include "FWCore/Framework/interface/Frameworkfwd.h"
-#include "FWCore/Framework/interface/EDProducer.h"
-
-#include "FWCore/Framework/interface/Event.h"
-#include "FWCore/Framework/interface/MakerMacros.h"
-
-#include "FWCore/ParameterSet/interface/ParameterSet.h"
-
-#include "DataFormats/TrackReco/interface/Track.h"
-#include "DataFormats/TrackReco/interface/TrackFwd.h"
-#include <vector>
-#include "Math/Vector3D.h"
-
-#include "FWCore/Framework/interface/MakerMacros.h"
-#include "FWCore/ServiceRegistry/interface/Service.h"
-#include "CommonTools/UtilAlgos/interface/TFileService.h"
-//#include "DataFormats/HeavyIonEvent/interface/CentralityProvider.h"
-#include <DataFormats/VertexReco/interface/Vertex.h>
-#include <DataFormats/VertexReco/interface/VertexFwd.h>
-#include <DataFormats/TrackReco/interface/Track.h>
-#include <DataFormats/TrackReco/interface/TrackFwd.h>
-#include "SimDataFormats/TrackingAnalysis/interface/TrackingParticle.h"
-#include "SimDataFormats/TrackingAnalysis/interface/TrackingParticleFwd.h"
-#include "SimTracker/Records/interface/TrackAssociatorRecord.h"
-#include "DataFormats/RecoCandidate/interface/TrackAssociation.h"
-#include "SimTracker/TrackAssociation/interface/TrackAssociatorByHits.h"
-
-
-
-//
-// class declaration
-//
-
-class TestProducer : public edm::EDProducer {
-   public:
-      explicit TestProducer(const edm::ParameterSet&);
-      ~TestProducer();
-
-     private:
-      virtual void beginJob() ;
-      virtual void produce(edm::Event&, const edm::EventSetup&);
-      virtual void endJob() ;
-      
-  // ----------member data ---------------------------
-  //typedef std::vector<float> JaimesTrackCollection;
-  
-  edm::InputTag vertexSrc_;
-  edm::InputTag trackSrc_;
-  edm::InputTag tpFakSrc_;
-  edm::InputTag tpEffSrc_;
-  edm::InputTag associatorMap_;
-
-};
+#include "ProdTutorial/TestProducer/interface/TestProducer.h"
 
 //
 // constants, enums and typedefs
@@ -69,11 +13,18 @@ class TestProducer : public edm::EDProducer {
 // constructors and destructor
 //
 TestProducer::TestProducer(const edm::ParameterSet& iConfig):
-  vertexSrc_(iConfig.getParameter<edm::InputTag>("vertexSrc")),
+ vertexSrc_(iConfig.getParameter<edm::InputTag>("vertexSrc")),
   trackSrc_(iConfig.getParameter<edm::InputTag>("trackSrc")),
   tpFakSrc_(iConfig.getParameter<edm::InputTag>("tpFakSrc")),
   tpEffSrc_(iConfig.getParameter<edm::InputTag>("tpEffSrc")),
-  associatorMap_(iConfig.getParameter<edm::InputTag>("associatorMap"))
+  associatorMap_(iConfig.getParameter<edm::InputTag>("associatorMap")),
+ //  ptBins_(iConfig.getParameter<std::vector<double> >("ptBins")),
+ //etaBins_(iConfig.getParameter<std::vector<double> >("etaBins")),
+  dxyErrMax_(iConfig.getParameter<double>("dzErrMax")),
+  dzErrMax_(iConfig.getParameter<double>("dzErrMax")),
+  ptErrMax_(iConfig.getParameter<double>("ptErrMax")),
+  vertexZMax_(iConfig.getParameter<double>("vertexZMax")),
+  qualityString_(iConfig.getParameter<std::string>("qualityString"))
 {
   
   //Make My Reco Track Collection
@@ -128,6 +79,17 @@ TestProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
    Handle<std::vector<reco::Vertex> > vertex;
    iEvent.getByLabel(vertexSrc_, vertex);
 
+
+   // sort the vertcies by number of tracks in descending order
+   std::vector<reco::Vertex> vsorted = *vertex;
+   std::sort( vsorted.begin(), vsorted.end(), TestProducer::vtxSort );
+
+   // skip events with no PV, this should not happen
+   if( vsorted.size() == 0) return;
+
+   // skip events failing vertex cut
+   if( fabs(vsorted[0].z()) > vertexZMax_ ) return;
+
    //Output
    /*std::auto_ptr<JaimesTrackCollection> pt(new JaimesTrackCollection);
    std::auto_ptr<JaimesTrackCollection> eta(new JaimesTrackCollection);
@@ -143,8 +105,7 @@ TestProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
        
        edm::RefToBase<reco::Track> track(tcol, i);
        reco::Track* tr=const_cast<reco::Track*>(track.get());
-       
-       
+       if( ! passesTrackCuts(*tr, vsorted[0]) ) continue;
        // look for match to simulated particle, use first match if it exists                                 
        std::vector<std::pair<TrackingParticleRef, double> > tp;
        const TrackingParticle *mtp=0;
@@ -164,16 +125,44 @@ TestProducer::produce(edm::Event& iEvent, const edm::EventSetup& iSetup)
 }
 
 // ------------ method called once each job just before starting event loop  ------------
-void 
-TestProducer::beginJob()
-{
-}
+void TestProducer::beginJob()
+{}
 
 // ------------ method called once each job just after ending the event loop  ------------
-void 
-TestProducer::endJob() {
+void TestProducer::endJob() {}
+
+
+bool TestProducer::passesTrackCuts(const reco::Track & track, const reco::Vertex & vertex)
+{
+  //if ( ! applyTrackCuts_ ) return true;
+
+  math::XYZPoint vtxPoint(0.0,0.0,0.0);
+  double vzErr =0.0, vxErr=0.0, vyErr=0.0;
+  vtxPoint=vertex.position();
+  vzErr=vertex.zError();
+  vxErr=vertex.xError();
+  vyErr=vertex.yError();
+
+  double dxy=0.0, dz=0.0, dxysigma=0.0, dzsigma=0.0;
+  dxy = track.dxy(vtxPoint);
+  dz = track.dz(vtxPoint);
+  dxysigma = sqrt(track.d0Error()*track.d0Error()+vxErr*vyErr);
+  dzsigma = sqrt(track.dzError()*track.dzError()+vzErr*vzErr);
+ 
+  if(track.quality(reco::TrackBase::qualityByName(qualityString_)) != 1)
+    return false;
+  if(fabs(dxy/dxysigma) > dxyErrMax_) return false;
+  if(fabs(dz/dzsigma) > dzErrMax_) return false;
+  if(track.ptError() / track.pt() > ptErrMax_) return false;
+
+  return true;
 }
 
+bool TestProducer::vtxSort( const reco::Vertex &  a, const reco::Vertex & b )
+{
+  if( a.tracksSize() != b.tracksSize() )
+    return  a.tracksSize() > b.tracksSize() ? true : false ;
+  else
+    return  a.chi2() < b.chi2() ? true : false ;  
+}
 
-//define this as a plug-in
-DEFINE_FWK_MODULE(TestProducer);
