@@ -147,9 +147,9 @@ void EfficiencyAnalyzer::beginJob()
 void EfficiencyAnalyzer::initHistos(const edm::Service<TFileService> & fs)
 {
   //Fake Rate Plots
-  TotalRecoTracks_ = fs->make<TH2F>("TotalChargedTrackingParticles","TotalChargedTrackingParticles",etaBins_.size()-1, &etaBins_[0],ptBins_.size()-1, &ptBins_[0]);
-  TotalSecondaryTracks_ =fs->make<TH2F>("TotalMatchedParticles","TotalMatchedParticles",etaBins_.size()-1,&etaBins_[0],ptBins_.size()-1, &ptBins_[0]);
-  TotalFakeTracks_ =fs->make<TH2F>("TotalMultiMatchedParticles","TotalMultiMatchedParticles",etaBins_.size()-1, &etaBins_[0],ptBins_.size()-1, &ptBins_[0]);
+  TotalRecoTracks_ = fs->make<TH2F>("TotalRecoTracks","TotalRecoTracks",etaBins_.size()-1, &etaBins_[0],ptBins_.size()-1, &ptBins_[0]);
+  TotalSecondaryTracks_ =fs->make<TH2F>("TotalSecondaryTracks","TotalSecondaryTracks",etaBins_.size()-1,&etaBins_[0],ptBins_.size()-1, &ptBins_[0]);
+  TotalFakeTracks_ =fs->make<TH2F>("TotalFakeTracks","TotalFakeTracks",etaBins_.size()-1, &etaBins_[0],ptBins_.size()-1, &ptBins_[0]);
   
   
   //Efficiency Plots
