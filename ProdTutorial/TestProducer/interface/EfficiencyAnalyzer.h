@@ -75,7 +75,12 @@ class EfficiencyAnalyzer : public edm::EDAnalyzer {
   double dzErrMax_;
   double ptErrMax_;
 
-
+  //For Fake Rate
+  TH2F *TotalRecoTracks_;
+  TH2F *TotalSecondaryTracks_;
+  TH2F *TotalFakeTracks_;
+  
+  //For Efficiency
   TH2F *TotalParticles_;
   TH2F *MatchedParticles_;
   TH2F *MultiMatchedParticles_;
