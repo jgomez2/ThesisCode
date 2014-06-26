@@ -24,7 +24,8 @@ TestProducer::TestProducer(const edm::ParameterSet& iConfig):
   dzErrMax_(iConfig.getParameter<double>("dzErrMax")),
   ptErrMax_(iConfig.getParameter<double>("ptErrMax")),
   vertexZMax_(iConfig.getParameter<double>("vertexZMax")),
-  qualityString_(iConfig.getParameter<std::string>("qualityString"))
+ qualityString_(iConfig.getParameter<std::string>("qualityString")),
+ chi2Max_(iConfig.getParameter<double>("chi2Max"))
 {
   
   //Make My Reco Track Collection
@@ -136,6 +137,9 @@ bool TestProducer::passesTrackCuts(const reco::Track & track, const reco::Vertex
 {
   //if ( ! applyTrackCuts_ ) return true;
 
+  bool isPixel=false;
+  if ( track.numberOfValidHits() < 7 ) isPixel = true;
+
   math::XYZPoint vtxPoint(0.0,0.0,0.0);
   double vzErr =0.0, vxErr=0.0, vyErr=0.0;
   vtxPoint=vertex.position();
@@ -151,10 +155,17 @@ bool TestProducer::passesTrackCuts(const reco::Track & track, const reco::Vertex
  
   if(track.quality(reco::TrackBase::qualityByName(qualityString_)) != 1)
     return false;
-  //  if(fabs(dxy/dxysigma) > dxyErrMax_) return false;
-  if(fabs(dz/dzsigma) > dzErrMax_) return false;
-  if(track.ptError() / track.pt() > ptErrMax_) return false;
-
+  if (isPixel==true)
+    {
+      if(fabs(dz/dzsigma) > dzErrMax_) return false;
+      if(track.normalizedChi2() > chi2Max_)return false; 
+    }
+  else if(isPixel==false)
+    {
+      //  if(fabs(dxy/dxysigma) > dxyErrMax_) return false;
+      if(fabs(dz/dzsigma) > dzErrMax_) return false;
+      if(track.ptError() / track.pt() > ptErrMax_) return false;
+    }
   return true;
 }
 

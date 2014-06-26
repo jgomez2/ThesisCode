@@ -58,7 +58,8 @@ private:
   edm::InputTag tpFakSrc_;
   edm::InputTag tpEffSrc_;
   edm::InputTag associatorMap_;
-
+  double chi2Max_;
+  bool isPixel;
   double vertexZMax_;
   std::string qualityString_;
   double dxyErrMax_;
