@@ -178,7 +178,7 @@ bool EfficiencyAnalyzer::passesTrackCuts(const reco::Track & track, const reco::
  
   if(track.quality(reco::TrackBase::qualityByName(qualityString_)) != 1)
     return false;
-  if(fabs(dxy/dxysigma) > dxyErrMax_) return false;
+  //if(fabs(dxy/dxysigma) > dxyErrMax_) return false;
   if(fabs(dz/dzsigma) > dzErrMax_) return false;
   if(track.ptError() / track.pt() > ptErrMax_) return false;
 
