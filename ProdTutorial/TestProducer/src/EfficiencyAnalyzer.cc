@@ -70,6 +70,40 @@ void EfficiencyAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
    // skip events failing vertex cut
    if( fabs(vsorted[0].z()) > vertexZMax_ ) return;
 
+
+   // ---------------------
+   // loop through reco tracks to fill fake, reco, and secondary histograms
+   // ---------------------
+
+   for(edm::View<reco::Track>::size_type i=0; i<tcol->size(); ++i){
+    
+     edm::RefToBase<reco::Track> track(tcol, i);
+     reco::Track* tr=const_cast<reco::Track*>(track.get());
+     // skip tracks that fail cuts, using vertex with most tracks as PV       
+     if( ! passesTrackCuts(*tr, vsorted[0]) ) continue;
+
+     TotalRecoTracks_->Fill(tr->eta(), tr->pt(), 1);
+
+     // look for match to simulated particle, use first match if it exists
+     std::vector<std::pair<TrackingParticleRef, double> > tp;
+     const TrackingParticle *mtp=0;
+     if(recSimColl.find(track) != recSimColl.end())
+     {
+       tp = recSimColl[track];
+       mtp = tp.begin()->first.get();  
+       if( mtp->status() < 0 ) 
+       {
+         TotalSecondaryTracks_->Fill(tr->eta(), tr->pt(), 1);     
+       }
+     }
+     else
+     {
+       TotalFakeTracks_->Fill(tr->eta(), tr->pt(), 1);
+     }
+    
+   }
+
+
    // ---------------------
    // loop through sim particles to fill matched, multiple,  and sim histograms 
    // ---------------------
@@ -96,6 +130,7 @@ void EfficiencyAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup
          nrec++;
        }
      }
+     //if(tp->pt()<1.4) cout<<"Particle has a pT of "<<tp->pt()<<endl;
      if(nrec>0) MatchedParticles_->Fill(tp->eta(),tp->pt(), 1);
      if(nrec>1) MultiMatchedParticles_->Fill(tp->eta(),tp->pt(), 1);
    }
@@ -110,7 +145,13 @@ void EfficiencyAnalyzer::beginJob()
 
 void EfficiencyAnalyzer::initHistos(const edm::Service<TFileService> & fs)
 {
-
+  //Fake Rate Plots
+  TotalRecoTracks_ = fs->make<TH2F>("TotalChargedTrackingParticles","TotalChargedTrackingParticles",etaBins_.size()-1, &etaBins_[0],ptBins_.size()-1, &ptBins_[0]);
+  TotalSecondaryTracks_ =fs->make<TH2F>("TotalMatchedParticles","TotalMatchedParticles",etaBins_.size()-1,&etaBins_[0],ptBins_.size()-1, &ptBins_[0]);
+  TotalFakeTracks_ =fs->make<TH2F>("TotalMultiMatchedParticles","TotalMultiMatchedParticles",etaBins_.size()-1, &etaBins_[0],ptBins_.size()-1, &ptBins_[0]);
+  
+  
+  //Efficiency Plots
   TotalParticles_ = fs->make<TH2F>("TotalChargedTrackingParticles","TotalChargedTrackingParticles",etaBins_.size()-1, &etaBins_[0],ptBins_.size()-1, &ptBins_[0]);
   MatchedParticles_ =fs->make<TH2F>("TotalMatchedParticles","TotalMatchedParticles",etaBins_.size()-1, &etaBins_[0],ptBins_.size()-1, &ptBins_[0]);
   MultiMatchedParticles_ =fs->make<TH2F>("TotalMultiMatchedParticles","TotalMultiMatchedParticles",etaBins_.size()-1, &etaBins_[0],ptBins_.size()-1, &ptBins_[0]);
