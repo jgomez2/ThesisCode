@@ -21,7 +21,7 @@ effAna = cms.EDAnalyzer('EfficiencyAnalyzer',
                       ),
                       qualityString = cms.string("highPurity"),
                       dxyErrMax = cms.double(3.0),
-                      dzErrMax = cms.double(3.0),
+                      dzErrMax = cms.double(10.0),
                       ptErrMax = cms.double(0.1),
                       vertexZMax = cms.double(10.)
                       )
