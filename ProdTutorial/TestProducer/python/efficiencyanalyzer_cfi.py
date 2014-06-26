@@ -23,6 +23,7 @@ effAna = cms.EDAnalyzer('EfficiencyAnalyzer',
                       dxyErrMax = cms.double(3.0),
                       dzErrMax = cms.double(10.0),
                       ptErrMax = cms.double(0.1),
-                      vertexZMax = cms.double(10.)
+                      vertexZMax = cms.double(10.),
+                      chi2Max = cms.double(36.)
                       )
 
