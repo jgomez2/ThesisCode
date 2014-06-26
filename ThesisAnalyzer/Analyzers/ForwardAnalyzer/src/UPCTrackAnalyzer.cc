@@ -1,22 +1,3 @@
-//////////////////////////////////////////////////////////////////////////
-///////////////////////completely ripped off from////////////////////////
-//   PPPPPPP            AAAAAAAAAAAA             TTTTTTTTTTTTTTTTTTTTTTTT
-/// PP    PP            AAA      AAA             TTTTTTTTTTTTTTTTTTTTTTTT
-// PP     PP            AAA      AAA                        TTT
-// PP    PPP            AAA      AAA                        TTT
-// PP   PPP             AAA      AAA                        TTT
-// PP  PPP              AAAAAAAAAAAA                        TTT
-// PP PPP               AAAAAAAAAAAA                        TTT
-// PPP                  AAA      AAA                        TTT
-// PP                   AAA      AAA                        TTT
-// PP                   AAA      AAA                        TTT
-// PP                   AAA      AAA                        TTT
-// PP                   AAA      AAA                        TTT
-// PP                   AAA      AAA                        TTT
-//
-// from University of Kansas.
-/////////////////////////////////////////////////////////////////////////
-
 #include "Analyzers/ForwardAnalyzer/interface/UPCTrackAnalyzer.h"
 
 using namespace edm;
@@ -64,7 +45,7 @@ void UPCTrackAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   varQoverp.clear(); varLambda.clear(); varPhi.clear();
   covarQoverpLambda.clear();covarQoverpPhi.clear();covarLambdaPhi.clear();eta.clear();
 
-  chi2_=40.;
+  chi2_=36.;
   dzerr_=10.;
 
   if(!hiTrax.failedToGet()){getTracks(hiTrax,vertex,ndof,chi2,x,y,z,pt,qoverp,lambda,phi,varQoverp,varLambda,varPhi,
@@ -141,14 +122,14 @@ void UPCTrackAnalyzer::getTracks(Handle<TrackCollection> TrackCol,edm::Handle<re
     if ( ! isPixel)
       {
         // dz and d0 significance cuts
-        if ( fabs(dz/dzsigma) > 3 ) accepted = false;
-        if ( fabs(d0/d0sigma) > 3 ) accepted = false;
+        if ( fabs(dz/dzsigma) > 10 ) accepted = false;
+        //if ( fabs(d0/d0sigma) > 3 ) accepted = false;
 
         // pt resolution cut
-        if ( trax->ptError()/trax->pt() > 0.05 ) accepted = false;
+        if ( trax->ptError()/trax->pt() > 0.01 ) accepted = false;
 
         // number of valid hits cut
-        if ( trax->numberOfValidHits() < 12 ) accepted = false;
+        //if ( trax->numberOfValidHits() < 12 ) accepted = false;
       }
 
     if( accepted ){
