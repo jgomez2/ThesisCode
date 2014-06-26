@@ -12,7 +12,8 @@ EfficiencyAnalyzer::EfficiencyAnalyzer(const edm::ParameterSet& iConfig):
   dzErrMax_(iConfig.getParameter<double>("dzErrMax")),
   vertexZMax_(iConfig.getParameter<double>("vertexZMax")),
   ptErrMax_(iConfig.getParameter<double>("ptErrMax")),
-  qualityString_(iConfig.getParameter<std::string>("qualityString"))
+  qualityString_(iConfig.getParameter<std::string>("qualityString")),
+  chi2Max_(iConfig.getParameter<double>("chi2Max"))
 {
   edm::Service<TFileService> fs;
   initHistos(fs);
@@ -162,6 +163,8 @@ void EfficiencyAnalyzer::initHistos(const edm::Service<TFileService> & fs)
 bool EfficiencyAnalyzer::passesTrackCuts(const reco::Track & track, const reco::Vertex & vertex)
 {
   // if ( ! applyTrackCuts_ ) return true;
+  bool isPixel = false;
+  if (track.numberOfValidHits() < 7) isPixel= true;
 
   math::XYZPoint vtxPoint(0.0,0.0,0.0);
   double vzErr =0.0, vxErr=0.0, vyErr=0.0;
@@ -178,10 +181,18 @@ bool EfficiencyAnalyzer::passesTrackCuts(const reco::Track & track, const reco::
  
   if(track.quality(reco::TrackBase::qualityByName(qualityString_)) != 1)
     return false;
-  //if(fabs(dxy/dxysigma) > dxyErrMax_) return false;
-  if(fabs(dz/dzsigma) > dzErrMax_) return false;
-  if(track.ptError() / track.pt() > ptErrMax_) return false;
 
+  if (isPixel==true)
+    {
+      if(fabs(dz/dzsigma) > dzErrMax_) return false;
+      if(track.normalizedChi2() > chi2Max_) return false; 
+    }
+  else if (isPixel==false)
+    {
+      //if(fabs(dxy/dxysigma) > dxyErrMax_) return false;
+      if(fabs(dz/dzsigma) > dzErrMax_) return false;
+      if(track.ptError() / track.pt() > ptErrMax_) return false;
+    }
   return true;
 }
 

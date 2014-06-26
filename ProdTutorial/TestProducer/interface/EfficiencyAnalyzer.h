@@ -68,13 +68,13 @@ class EfficiencyAnalyzer : public edm::EDAnalyzer {
 
   std::vector<double> ptBins_;
   std::vector<double> etaBins_;
-
+  bool isPixel;
   double vertexZMax_;
   std::string qualityString_;
   double dxyErrMax_;
   double dzErrMax_;
   double ptErrMax_;
-
+  double chi2Max_;
   //For Fake Rate
   TH2F *TotalRecoTracks_;
   TH2F *TotalSecondaryTracks_;
