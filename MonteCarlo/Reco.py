@@ -58,8 +58,8 @@ process.newer_step= cms.Path(process.effAna)
 ##########################
 ### MERGER ################
 ##########################
-process.load("jgomez2/TrackMerging/HiMultipleTrackListMerger_cff")
-process.merge_step = cms.Path(process.hiGoodMergedTracks)
+#process.load("jgomez2/TrackMerging/HiMultipleTrackListMerger_cff")
+#process.merge_step = cms.Path(process.hiGoodMergedTracks)
 
 
 #######################################################
