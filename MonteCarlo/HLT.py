@@ -62,8 +62,8 @@ process.newer_step=cms.Path(process.effAna)
 ##########################
 ### MERGER ################
 ##########################
-process.load("jgomez2/TrackMerging/HiMultipleTrackListMerger_cff")
-process.merge_step = cms.Path(process.hiGoodMergedTracks)
+#process.load("jgomez2/TrackMerging/HiMultipleTrackListMerger_cff")
+#process.merge_step = cms.Path(process.hiGoodMergedTracks)
 
 
 #######################################################
@@ -82,13 +82,13 @@ process.merge_step = cms.Path(process.hiGoodMergedTracks)
 #######################################################
 ####Track Associator###################################
 process.load("SimTracker.TrackAssociation.trackingParticleRecoTrackAsssociation_cfi")
-process.tpRecoAssochiGoodMergedTracks = process.trackingParticleRecoTrackAsssociation.clone()
-process.tpRecoAssochiGoodMergedTracks.label_tr = cms.InputTag("hiGoodMergedTracks")
+process.tpRecoAssochiLowPtPixelTracks = process.trackingParticleRecoTrackAsssociation.clone()
+process.tpRecoAssochiLowPtPixelTracks.label_tr = cms.InputTag("hiLowPtPixelTracks")
 
 process.load("SimTracker.TrackAssociation.TrackAssociatorByHits_cfi")
 process.TrackAssociatorByHits.SimToRecoDenominator = cms.string('reco')
 
-process.associator_step=cms.Path(process.tpRecoAssochiGoodMergedTracks)
+process.associator_step=cms.Path(process.tpRecoAssochiLowPtPixelTracks)
 ################################################################
 ########################################################### 
 
@@ -113,7 +113,7 @@ process.load("HeavyIonsAnalysis.Configuration.hfCoincFilter_cff")
 # selection of non-fake vertex (i.e. at least one pixel track)
 process.primaryVertexFilter = cms.EDFilter("VertexSelector",
                                            src = cms.InputTag("hiSelectedVertex"),
-                                           cut = cms.string("!isFake && abs(z) <= 25 && position.Rho <= 2"),
+                                           cut = cms.string("!isFake && abs(z) <= 10 && position.Rho <= 2"),
                                            filter = cms.bool(True),   # otherwise it won't filter the events, instead making an empty vertex collection
                                            )
 
@@ -131,7 +131,9 @@ process.noBSChalo = process.hltLevel1GTSeed.clone(
     L1SeedsLogicalExpression = cms.string('NOT (36 OR 37 OR 38 OR 39)')
     )
 
-process.filter_step = cms.Path(process.hltMinBiasHFOrBSC*process.hfCoincFilter3*process.siPixelRecHits*process.hltPixelClusterShapeFilter*process.noBSChalo*process.primaryVertexFilter*process.hiConformalPixelTracks)
+process.filter_step = cms.Path(process.hltMinBiasHFOrBSC*process.hfCoincFilter3*process.siPixelRecHits*process.hltPixelClusterShapeFilter*process.noBSChalo*process.primaryVertexFilter)
+
+process.track_step= cms.Path(process.hiConformalPixelTracks*process.hiPixelOnlyStepSelector*process.hiHighPtStepSelector*process.hiLowPtPixelTracks)
 ###############################################################
 ###############################################################
 
@@ -153,6 +155,12 @@ process.RECODEBUGoutput = cms.OutputModule("PoolOutputModule",
     dataTier = cms.untracked.string('')
     )
                                            )
+
+
+###SO I CAN GET EFFICIECNY PLOTS
+process.TFileService = cms.Service("TFileService",
+                                   fileName = cms.string('trackefficiency.root')
+                                   )
 
 # Additional output definition
 
@@ -178,10 +186,11 @@ process.schedule.extend([process.raw2digi_step,
                          process.reconstruction_step,
                          process.filter_step,
                          #process.pixel_step,
-                         process.merge_step,
+                         #process.merge_step,
+                         process.track_step,
                          process.associator_step,
-                         process.new_step,
                          process.newer_step,
+                         process.new_step,
                          process.endjob_step,
                          process.RECODEBUGoutput_step])
 
@@ -201,7 +210,7 @@ process.RECODEBUGoutput.outputCommands = ['keep *_*_*_*']
 ##Keeping tracks and pixel tracks
 #process.RECODEBUGoutput.outputCommands += ['keep *_hiGeneralTracks_*_*']
 #process.RECODEBUGoutput.outputCommands += ['keep *_hiConformalPixelTracks_*_*']
-process.RECODEBUGoutput.outputCommands +=['keep *_hiGoodMergedTracks_*_*']
+#process.RECODEBUGoutput.outputCommands +=['keep *_hiGoodMergedTracks_*_*']
 process.RECODEBUGoutput.outputCommands +=['keep *_jaimeTracks_*_*']
 ##Keep Vertex Info
 process.RECODEBUGoutput.outputCommands += ['keep *_hiSelectedVertex_*_*']
@@ -216,3 +225,4 @@ process.RECODEBUGoutput.outputCommands += ['keep *_hiCentrality_*_*']
 ##Associated Tracks
 #process.RECODEBUGoutput.outputCommands += ['keep *_tpRecoAssochiGoodMergedTracks_*_*']
 
+process.RECODEBUGoutput.outputCommands += ['keep *_hiLowPtPixelTracks_*_*']
