@@ -52,6 +52,9 @@ process.configurationMetadata = cms.untracked.PSet(
 process.load("ProdTutorial/TestProducer/testproducer_cfi")
 process.new_step= cms.Path(process.jaimeTracks)
 
+process.load("ProdTutorial/TestProducer/efficiencyanalyzer_cfi")
+process.newer_step= cms.Path(process.effAna)
+
 ##########################
 ### MERGER ################
 ##########################
@@ -75,13 +78,13 @@ process.merge_step = cms.Path(process.hiGoodMergedTracks)
 #######################################################
 ####Track Associator###################################
 process.load("SimTracker.TrackAssociation.trackingParticleRecoTrackAsssociation_cfi")
-process.tpRecoAssochiGoodMergedTracks = process.trackingParticleRecoTrackAsssociation.clone()
-process.tpRecoAssochiGoodMergedTracks.label_tr = cms.InputTag("hiGoodMergedTracks")
+process.tpRecoAssochiLowPtPixelTracks = process.trackingParticleRecoTrackAsssociation.clone()
+process.tpRecoAssochiLowPtPixelTracks.label_tr = cms.InputTag("hiLowPtPixelTracks")
 
 process.load("SimTracker.TrackAssociation.TrackAssociatorByHits_cfi")
 process.TrackAssociatorByHits.SimToRecoDenominator = cms.string('reco')
 
-process.associator_step=cms.Path(process.tpRecoAssochiGoodMergedTracks)
+process.associator_step=cms.Path(process.tpRecoAssochiLowPtPixelTracks)
 ################################################################
 ########################################################### 
 
@@ -89,7 +92,7 @@ process.associator_step=cms.Path(process.tpRecoAssochiGoodMergedTracks)
 ###########################
 ##Make pixel tracks
 ###########################
-process.pixel_step= cms.Path(process.hiConformalPixelTracks)
+#process.pixel_step= cms.Path(process.hiConformalPixelTracks)
 
 
 ############################################################
@@ -130,7 +133,9 @@ process.noBSChalo = process.hltLevel1GTSeed.clone(
         L1SeedsLogicalExpression = cms.string('NOT (36 OR 37 OR 38 OR 39)')
         )
 
-process.filter_step = cms.Path(process.hltMinBiasHFOrBSC*process.hfCoincFilter3*process.siPixelRecHits*process.hltPixelClusterShapeFilter*process.noBSChalo*process.primaryVertexFilter*process.hiConformalPixelTracks)
+process.filter_step = cms.Path(process.hltMinBiasHFOrBSC*process.hfCoincFilter3*process.siPixelRecHits*process.hltPixelClusterShapeFilter*process.noBSChalo*process.primaryVertexFilter)
+
+process.track_step= cms.Path(process.hiConformalPixelTracks*process.hiPixelOnlyStepSelector*process.hiHighPtStepSelector*process.hiLowPtPixelTracks)
 ###############################################################
 ###############################################################
 
@@ -153,7 +158,7 @@ process.RECODEBUGoutput = cms.OutputModule("PoolOutputModule",
 
 # Other statements
 from Configuration.AlCa.GlobalTag import GlobalTag
-process.GlobalTag = GlobalTag(process.GlobalTag, 'STARTHI53_LV1::All', '')
+process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:starthi_HIon', '')
 
 # Path and EndPath definitions
 process.digitisation_step = cms.Path(process.pdigi)
@@ -171,14 +176,21 @@ process.schedule = cms.Schedule(process.digitisation_step,
                                 process.raw2digi_step,
                                 process.reconstruction_step,
                                 #process.filter_step,
-                                process.pixel_step,
-                                process.merge_step,
+                                #process.pixel_step,
+                                process.track_step,
+                                #process.merge_step,
                                 process.associator_step,
+                                process.newer_step,
                                 process.new_step,
                                 process.endjob_step,
                                 process.RECODEBUGoutput_step)
 
 
+
+###SO I CAN GET EFFICIECNY PLOTS
+process.TFileService = cms.Service("TFileService",
+                                   fileName = cms.string('trackefficiency.root')
+                                   )
 
 #Deciding what to keep
 
@@ -188,7 +200,7 @@ process.RECODEBUGoutput.outputCommands = ['drop *_*_*_*']
 ##Keeping tracks and pixel tracks
 #process.RECODEBUGoutput.outputCommands += ['keep *_hiGeneralTracks_*_*']
 #process.RECODEBUGoutput.outputCommands += ['keep *_hiConformalPixelTracks_*_*']
-process.RECODEBUGoutput.outputCommands +=['keep *_hiGoodMergedTracks_*_*']
+#process.RECODEBUGoutput.outputCommands +=['keep *_hiGoodMergedTracks_*_*']
 process.RECODEBUGoutput.outputCommands +=['keep *_jaimeTracks_*_*']
 ##Keep Vertex Info
 process.RECODEBUGoutput.outputCommands += ['keep *_hiSelectedVertex_*_*']
@@ -202,3 +214,4 @@ process.RECODEBUGoutput.outputCommands += ['keep *_towerMaker_*_*']
 process.RECODEBUGoutput.outputCommands += ['keep *_hiCentrality_*_*']
 ##Associated Tracks
 #process.RECODEBUGoutput.outputCommands += ['keep *_tpRecoAssochiGoodMergedTracks_*_*']
+process.RECODEBUGoutput.outputCommands += ['keep *_hiLowPtPixelTracks_*_*']
