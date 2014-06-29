@@ -184,7 +184,7 @@ process.schedule = cms.Schedule(process.digitisation_step,
 process.schedule.extend(process.HLTSchedule)
 process.schedule.extend([process.raw2digi_step,
                          process.reconstruction_step,
-                         process.filter_step,
+                         #process.filter_step,
                          #process.pixel_step,
                          #process.merge_step,
                          process.track_step,
@@ -205,7 +205,7 @@ process = customizeHLTforMC(process)
 # End of customisation functions
 
 #Drop everything
-process.RECODEBUGoutput.outputCommands = ['keep *_*_*_*']
+process.RECODEBUGoutput.outputCommands = ['drop *_*_*_*']
 
 ##Keeping tracks and pixel tracks
 #process.RECODEBUGoutput.outputCommands += ['keep *_hiGeneralTracks_*_*']
