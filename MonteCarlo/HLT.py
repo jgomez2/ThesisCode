@@ -149,7 +149,7 @@ process.RECODEBUGoutput = cms.OutputModule("PoolOutputModule",
                                            eventAutoFlushCompressedSize = cms.untracked.int32(5242880),
                                            outputCommands = process.RECODEBUGEventContent.outputCommands,
                                            fileName = cms.untracked.string('WithHisto.root'),
-                                           SelectEvents = cms.untracked.PSet(SelectEvents = cms.vstring('filter_step')),
+                                           #SelectEvents = cms.untracked.PSet(SelectEvents = cms.vstring('filter_step')),
                                            dataset = cms.untracked.PSet(
     filterName = cms.untracked.string(''),
     dataTier = cms.untracked.string('')
