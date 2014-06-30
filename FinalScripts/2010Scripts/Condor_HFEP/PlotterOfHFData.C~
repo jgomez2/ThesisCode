@@ -1,0 +1,91 @@
+{
+
+  //This Macro simply makes a pretty plot of the data which was extracted
+  //HFDataPoints
+  Float_t etabins[7]={-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5};
+  Float_t hfdata_points[6];
+  Float_t hferror[6];
+  hfdata_points[0]=0.00326003;
+  hfdata_points[1]=0.00253089;
+  hfdata_points[2]=0.00100112;
+  hfdata_points[3]=-0.000510885;
+  hfdata_points[4]=-0.00211098;
+  hfdata_points[5]=-0.00318149;
+  hferror[0]=0.000115746;
+  hferror[1]=0.000106835;
+  hferror[2]=0.000103667;
+  hferror[3]=0.000104296;
+  hferror[4]=0.000108642;
+  hferror[5]=0.000119573;
+
+  //Raw <cos(Psi_a - Psi_b)>
+  Double_t rawres=0.049224;
+  //Real Resolution
+  Double_t realres=0.313764;
+
+  TH1F *V1EtaOdd = new TH1F("V1Eta","v_{1}(#eta) 40-50%",6,etabins);
+  V1EtaOdd->SetXTitle("#eta");
+  V1EtaOdd->SetYTitle("v_{1}");
+  gStyle->SetTitleX(0.5);
+  gStyle->SetTitleAlign(23);
+  V1EtaOdd->SetMarkerStyle(23);
+  V1EtaOdd->SetMarkerColor(kBlue);
+  V1EtaOdd->SetMarkerSize(1.8);
+  V1EtaOdd->GetYaxis()->SetRangeUser(-.013,.013);
+  V1EtaOdd->GetXaxis()->CenterTitle(1);
+  V1EtaOdd->GetYaxis()->CenterTitle(1);
+  V1EtaOdd->GetXaxis()->SetTickLength(0.02);
+  V1EtaOdd->GetYaxis()->SetTickLength(0.02);
+  gStyle->SetPadTickY(1);
+  gStyle->SetPadTickX(1);
+  gStyle->SetOptFit();
+  TH1F* zeroer= new TH1F("zeroer","zeroer",6,etabins);
+  zeroer->SetLineStyle(2);
+  Float_t zero[10]={0.};
+
+  for (Int_t i=0;i<6;i++)
+    {
+      V1EtaOdd->SetBinContent(i+1,hfdata_points[i]/realres);
+      V1EtaOdd->SetBinError(i+1,hferror[i]);
+      zeroer->SetBinContent(i+1,zero[i]);
+    }//end of filling data points
+
+  TF1 *newfit= new TF1("blah","pol1",-1.28,1.28);
+
+  new TCanvas;
+  V1EtaOdd->SetStats(0);
+  V1EtaOdd->SetTitle(0);
+  V1EtaOdd->Draw("PE2");
+  V1EtaOdd->Fit("blah");
+  V1EtaOdd->GetFunction("blah")->SetLineColor(kGreen+3);
+  V1EtaOdd->GetFunction("blah")->SetLineWidth(2);
+  zeroer->Draw("same");
+  
+ ///Legend///
+  TLegend* leg= new TLegend(0.25,0.25,0.3,0.35,"v_{1}(EP)","brNDC");
+  leg->AddEntry(V1EtaOdd->GetName(),"v_{1}^{odd}(#eta)","lp");
+  leg->SetFillColor(kWhite);
+  leg->SetTextFont(43);
+  leg->SetTextSize(16);
+  leg->SetBorderSize(0);
+  leg->Draw();
+  //////////////////
+  ///TLatex////
+  texa=new TLatex(0.65,0.75,"40-50%");
+  texa->SetNDC();
+  texa->SetTextSize(18);
+  texa->SetTextFont(43);
+  texa->Draw();
+  tex=new TLatex(0.55,0.81,"PbPb  #sqrt{s_{NN}}\ =\ 2.76TeV");
+  tex->SetNDC();
+  tex->SetTextSize(18);
+  tex->SetTextFont(43);
+  tex->Draw();
+  tex1=new TLatex(0.18,0.83,"CMS Preliminary");
+  tex1->SetNDC();
+  tex1->SetTextFont(43);
+  tex1->SetTextSize(16);
+  tex1->SetTextColor(kRed);
+  tex1->Draw();
+  
+}

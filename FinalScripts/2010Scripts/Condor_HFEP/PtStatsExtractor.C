@@ -1,0 +1,29 @@
+{
+  // TFile f("PTStats_HFEP.root");
+  TFile f("PTStats_HFEP.root");
+  Plots.cd();
+  PTStats.cd();
+
+  ofstream myout;
+  //myout.open("PtStats_HFEP.txt"); 
+  myout.open("poop.txt");
+  
+      //Mid Tracker
+      myout<<"//Mid Tracker"<<endl;
+      myout<<"ptavmid[0]="<<PtStatsMid_0to10->GetBinContent(1)<<";"<<endl;
+      myout<<"ptavmid[1]="<<PtStatsMid_10to20->GetBinContent(1)<<";"<<endl;
+      myout<<"ptavmid[2]="<<PtStatsMid_20to30->GetBinContent(1)<<";"<<endl;
+      myout<<"ptavmid[3]="<<PtStatsMid_30to40->GetBinContent(1)<<";"<<endl;
+      myout<<"ptavmid[4]="<<PtStatsMid_40to50->GetBinContent(1)<<";"<<endl;
+      myout<<" "<<endl;
+
+      myout<<"pt2avmid[0]="<<PtStatsMid_0to10->GetBinContent(2)<<";"<<endl;
+      myout<<"pt2avmid[1]="<<PtStatsMid_10to20->GetBinContent(2)<<";"<<endl;
+      myout<<"pt2avmid[2]="<<PtStatsMid_20to30->GetBinContent(2)<<";"<<endl;
+      myout<<"pt2avmid[3]="<<PtStatsMid_30to40->GetBinContent(2)<<";"<<endl;
+      myout<<"pt2avmid[4]="<<PtStatsMid_40to50->GetBinContent(2)<<";"<<endl;
+      myout<<" "<<endl;
+
+
+  myout.close();
+}

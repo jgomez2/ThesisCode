@@ -1,0 +1,13 @@
+//Mid Tracker
+ptavmid[0]=0.830949;
+ptavmid[1]=0.836451;
+ptavmid[2]=0.835466;
+ptavmid[3]=0.828784;
+ptavmid[4]=0.818137;
+ 
+pt2avmid[0]=0.965405;
+pt2avmid[1]=0.983187;
+pt2avmid[2]=0.986779;
+pt2avmid[3]=0.978199;
+pt2avmid[4]=0.960408;
+ 
