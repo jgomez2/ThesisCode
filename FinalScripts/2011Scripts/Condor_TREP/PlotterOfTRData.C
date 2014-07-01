@@ -1,0 +1,171 @@
+{
+#include "TGraph.h"
+
+//Theory
+float pt_bin[40]={0.05,0.15,0.25,0.35,
+		    0.45,0.55,0.65,0.75,
+		    0.85,0.95,1.05,1.15,
+		    1.25,1.35,1.45,1.55,
+		    1.65,1.75,1.85,1.95,
+		    2.05,2.15,2.25,2.35,
+		    2.45,2.55,2.65,2.75,
+		    2.85,2.95,3.05,3.15,
+		    3.25,3.35,3.45,3.55,
+		    3.65,3.75,3.85,3.95};
+
+float v1theory[40]={-0.0031157595,-0.0061514069,
+		      -0.0092550413,-0.0117963831,
+		      -0.0131727597,-0.0126612083,
+		      -0.0127185308,-0.0105141713,
+		      -0.0093834098,-0.0084200087,
+		      -0.0027702492,0.0021751586,
+		      0.005824404,0.0108632247,
+		      0.0173876148,0.0214169281,
+		      0.0287000808,0.0368152415,
+		      0.0382182693,0.0495937922,
+		      0.0541687448,0.0631435098,
+		      0.0650471337,0.073418936,
+		      0.0822111136,0.08279389,
+		      0.0912281671,0.0991161371,
+		      0.1094382179,0.1263760142,
+		      0.1211669232,0.1368175391,
+		      0.12053272,0.1501204763,
+		      0.1466602386,0.1661236871,
+		      0.1419319766,0.1582804263,
+		      0.1748140443,0.1419856096};
+
+  TGraph* blah= new TGraph(40,pt_bin,v1theory);
+  blah->SetMarkerStyle(33);
+  blah->SetMarkerColor(kGreen+3);
+
+//TRDataPoints
+Float_t pt_bin[18]={0.0,0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.4,2.8,3.2,3.6,4.5,6.5,9.5,12};
+Float_t trdata_points[16];
+Float_t trerror[16];
+Float_t bincenter[16];
+trdata_points[0]=-0.00268024;
+trdata_points[1]=-0.00219131;
+trdata_points[2]=-0.00130719;
+trdata_points[3]=-5.28419e-05;
+trdata_points[4]=0.00153861;
+trdata_points[5]=0.00309324;
+trdata_points[6]=0.00493662;
+trdata_points[7]=0.00785226;
+trdata_points[8]=0.0105813;
+trdata_points[9]=0.0154604;
+trdata_points[10]=0.019755;
+trdata_points[11]=0.021507;
+trdata_points[12]=0.0264374;
+trdata_points[13]=0.0252181;
+trdata_points[14]=0.011388;
+trdata_points[15]=0.00227918;
+trerror[0]=5.72715e-05;
+trerror[1]=6.62522e-05;
+trerror[2]=7.95538e-05;
+trerror[3]=9.64257e-05;
+trerror[4]=0.000117401;
+trerror[5]=0.000140243;
+trerror[6]=0.000167281;
+trerror[7]=0.000239468;
+trerror[8]=0.000223689;
+trerror[9]=0.000327991;
+trerror[10]=0.000477304;
+trerror[11]=0.000685091;
+trerror[12]=0.00075628;
+trerror[13]=0.00121397;
+trerror[14]=0.00278291;
+trerror[15]=0.00658561;
+bincenter[0]=0.496397;
+bincenter[1]=0.694249;
+bincenter[2]=0.893634;
+bincenter[3]=1.0935;
+bincenter[4]=1.29333;
+bincenter[5]=1.4996;
+bincenter[6]=1.69308;
+bincenter[7]=1.89369;
+bincenter[8]=2.17474;
+bincenter[9]=2.5749;
+bincenter[10]=2.97539;
+bincenter[11]=3.37685;
+bincenter[12]=3.94744;
+bincenter[13]=5.15323;
+bincenter[14]=7.54235;
+bincenter[15]=10.5227;
+//Raw <cos(Psi_a - Psi_b)>
+Double_t rawres=0.0304867;
+//Real Resolution
+Float_t realres=0.246928;
+for (Int_t i=0;i<16;i++)
+	{
+          trdata_points[i]=trdata_points[i]/realres;
+        }
+Float_t xerrors[16]={0.};
+  TGraphErrors *V1PtEven = new TGraphErrors(16,bincenter,trdata_points,xerrors,trerror);
+  V1PtEven->SetTitle("v_{1}^{even}(p_{T}) 10-20%");
+  V1PtEven->GetXaxis()->SetTitle("p_{T} (GeV/c)");
+  V1PtEven->GetYaxis()->SetTitle("v_{1}");
+  gStyle->SetTitleX(0.5);
+  gStyle->SetTitleAlign(23);
+  V1PtEven->SetMarkerStyle(22);
+  V1PtEven->SetMarkerColor(kBlue);
+  V1PtEven->SetMarkerSize(1.3);
+  //V1PtEven->GetXaxis()->SetRangeUser(0.0,2.8);
+  V1PtEven->GetXaxis()->CenterTitle(1);
+  V1PtEven->GetYaxis()->CenterTitle(1);
+  V1PtEven->GetXaxis()->SetTickLength(0.02);
+  V1PtEven->GetYaxis()->SetTickLength(0.02);
+  gStyle->SetPadTickY(1);
+  gStyle->SetPadTickX(1);
+  
+
+  TH1F* zeroer= new TH1F("zeroer","zeroer",17,pt_bin);
+  zeroer->SetLineStyle(2);
+  Float_t zero[18]={0.};
+
+  for (Int_t i=0;i<18;i++)
+    {
+      //V1PtEven->SetBinContent(i+1,trdata_points[i]/realres);
+      //V1PtEven->SetBinError(i+1,trerror[i]);
+      zeroer->SetBinContent(i+1,zero[i]);
+    }//end of filling data points
+
+  TF1 *newfit= new TF1("blah","pol1",-1.28,1.28);
+
+  new TCanvas;
+  //V1PtEven->SetStats(0);
+  //V1PtEven->SetTitle(0);
+  V1PtEven->Draw("AP");
+  // V1PtEven->Fit("blah");
+  // V1PtEven->GetFunction("blah")->SetLineColor(kGreen+3);
+  //V1PtEven->GetFunction("blah")->SetLineWidth(2);
+  zeroer->Draw("same");
+  //  blah->Draw("Psame");
+  
+ ///Legend///
+  TLegend* leg= new TLegend(0.45,0.35,0.55,0.45,"v_{1}(EP)","brNDC");
+  leg->AddEntry(V1PtEven->GetName(),"v_{1}^{even}(p_{T})","p");
+  leg->SetFillColor(kWhite);
+  leg->SetTextFont(43);
+  leg->SetTextSize(16);
+  leg->SetBorderSize(0);
+  leg->Draw();
+  //////////////////
+  ///TLatex////
+  texa=new TLatex(0.65,0.75,"10-20%");
+  texa->SetNDC();
+  texa->SetTextSize(18);
+  texa->SetTextFont(43);
+  texa->Draw();
+  tex=new TLatex(0.55,0.81,"PbPb  #sqrt{s_{NN}}\ =\ 2.76TeV");
+  tex->SetNDC();
+  tex->SetTextSize(18);
+  tex->SetTextFont(43);
+  tex->Draw();
+  tex1=new TLatex(0.18,0.83,"CMS Preliminary");
+  tex1->SetNDC();
+  tex1->SetTextFont(43);
+  tex1->SetTextSize(16);
+  tex1->SetTextColor(kRed);
+  tex1->Draw();
+  
+}
