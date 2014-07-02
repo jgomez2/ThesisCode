@@ -121,7 +121,7 @@ void Initialize(){
                        3.6,4.5,5.5,6.5,
                        7.5,8.5,9.5,10.5,
                        12};
-
+//Double_t pt_bin[17]={0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.4,2.8,3.2,3.6,4.5,6.5,9.5,12};
   chain= new TChain("hiGoodTightMergedTracksTree");
 
   //Tracks Tree
