@@ -1,0 +1,1336 @@
+#include<TH1F>
+#include<TProfile>
+#include<iostream>
+#include<iomanip>
+#include"TFile.h"
+#include"TTree.h"
+#include"TLeaf.h"
+#include"TChain.h"
+//Functions in this macro///
+void Initialize();
+void PTStats();
+void AngularCorrections();
+void FlowAnalysis();
+////////////////////////////
+
+
+//Files and chains
+TChain* chain2;//= new TChain("hiGoodTightMergedTracksTree");
+
+
+////////////////////////////////////////////////////////
+//Simply Need to Add psi(pos/neg/mid) Raw/Final plots///
+////////////////////////////////////////////////////////
+
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+////////////           GLOBAL VARIABLES            //////////////////
+/////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////
+Float_t pi=TMath::Pi();
+Int_t vterm=1;//Set which order harmonic that this code is meant to measure
+Int_t jMax=10;////Set out to which order correction we would like to apply
+Int_t NumberOfEvents=0;
+//NumberOfEvents=1;
+//NumberOfEvents=2;
+//NumberOfEvents=10;
+//NumberOfEvents=100;
+//NumberOfEvents=50000;
+//NumberOfEvents=350000;
+NumberOfEvents=1000000;
+//  NumberOfEvents = chain->GetEntries();
+
+const Int_t nCent=5;//Number of Centrality classes
+
+///Looping Variables
+Int_t Centrality=0; //This will be the centrality variable later
+Int_t NumberOfHits=0;//This will be for both tracks and Hits
+Float_t pT=0.;
+Float_t phi=0.;
+Float_t eta=0.;
+
+
+
+Float_t centlo[nCent];
+Float_t centhi[nCent];
+centlo[0]=0;  centhi[0]=10;
+centlo[1]=10;  centhi[1]=20;
+centlo[2]=20;  centhi[2]=30;
+centlo[3]=30;  centhi[3]=40;
+centlo[4]=40;  centhi[4]=50;
+
+//Create the output ROOT file
+TFile *myFile;// = new TFile("blah.root","RECREATE");
+//TTree *myTree;
+
+//PT Bin Centers
+TProfile *PTCenters[nCent];
+
+//EP Resolution Plots
+
+//For Resolution of V1 Even
+TProfile *TRPMinusTRM[nCent];
+TProfile *TRMMinusTRC[nCent];
+TProfile *TRPMinusTRC[nCent];
+
+//For Resolution of V1 Odd
+TProfile *TRPMinusTRMOdd[nCent];
+TProfile *TRMMinusTRCOdd[nCent];
+TProfile *TRPMinusTRCOdd[nCent];
+
+
+//Make Subdirectories for what will follow
+TDirectory *myPlots;//the top level
+TDirectory *epangles;//where i will store the ep angles
+TDirectory *outerep;
+TDirectory *posep;
+TDirectory *negep;
+TDirectory *midep;
+
+TDirectory *resolutions;//top level for resolutions
+TDirectory *psioneoddres;//where i will store standard EP resolution plots
+TDirectory *psioneevenres;//where i will store psi1(even)
+
+TDirectory *v1plots;//where i will store the v1 plots
+TDirectory *v1etaoddplots;//v1(eta) [odd] plots
+TDirectory *v1etaevenplots; //v1(eta)[even] plots
+TDirectory *v1ptevenplots; //v1(pT)[even] plots
+TDirectory *v1ptoddplots;//v1(pT)[odd] plots
+
+//Pt stats
+TDirectory *ptstatplots;
+
+//Angular Correction Folders
+TDirectory *angularcorrectionplots;
+//Psi1 Corrections
+TDirectory *angcorr1odd;
+TDirectory *wholeoddtrackercorrs;
+TDirectory *posoddtrackercorrs;
+TDirectory *negoddtrackercorrs;
+TDirectory *midoddtrackercorrs;
+//Psi1 Even Corrections
+TDirectory *angcorr1even;
+TDirectory *wholetrackercorrs;
+TDirectory *postrackercorrs;
+TDirectory *negtrackercorrs;
+TDirectory *midtrackercorrs;
+
+
+//TProfiles to save <pT> and <pT^2> info ....All this is for Ollitrault weights
+TProfile *PtStatsWhole[nCent];//Both sides of the tracker
+TProfile *PtStatsPos[nCent];//Positive eta tracker
+TProfile *PtStatsNeg[nCent];//Negative eta tracker
+TProfile *PtStatsMid[nCent];//Middle eta tracker
+Float_t ptavwhole[nCent]={0.},pt2avwhole[nCent]={0.};
+Float_t ptavpos[nCent]={0.},pt2avpos[nCent]={0.};
+Float_t ptavneg[nCent]={0.},pt2avneg[nCent]={0.};
+Float_t ptavmid[nCent]={0.},pt2avmid[nCent]={0.};
+
+//Looping Variables
+//v1 even
+Float_t X_wholetracker[nCent]={0.},Y_wholetracker[nCent]={0.},
+  X_postracker[nCent]={0.},Y_postracker[nCent]={0.},
+  X_negtracker[nCent]={0.},Y_negtracker[nCent]={0.},
+  X_midtracker[nCent]={0.},Y_midtracker[nCent]={0.};
+
+//v1 odd
+Float_t X_wholeoddtracker[nCent]={0.},Y_wholeoddtracker[nCent]={0.},
+  X_posoddtracker[nCent]={0.},Y_posoddtracker[nCent]={0.},
+  X_negoddtracker[nCent]={0.},Y_negoddtracker[nCent]={0.},
+  X_midoddtracker[nCent]={0.},Y_midoddtracker[nCent]={0.};
+
+
+
+//////////////////////////////////////
+// The following variables and plots
+// are for the AngularCorrections
+// function
+///////////////////////////////////////
+
+
+//These Will store the angular correction factors
+//v1 even
+//Whole Tracker
+TProfile *Coswholetracker[nCent];
+TProfile *Sinwholetracker[nCent];
+
+//Pos Tracker
+TProfile *Cospostracker[nCent];
+TProfile *Sinpostracker[nCent];
+
+//Neg Tracker
+TProfile *Cosnegtracker[nCent];
+TProfile *Sinnegtracker[nCent];
+
+//Mid Tracker
+TProfile *Cosmidtracker[nCent];
+TProfile *Sinmidtracker[nCent];
+
+//v1 odd
+//Whole Tracker
+TProfile *Coswholeoddtracker[nCent];
+TProfile *Sinwholeoddtracker[nCent];
+
+//Pos Tracker
+TProfile *Cosposoddtracker[nCent];
+TProfile *Sinposoddtracker[nCent];
+
+//Neg Tracker
+TProfile *Cosnegoddtracker[nCent];
+TProfile *Sinnegoddtracker[nCent];
+
+//Mid Tracker
+TProfile *Cosmidoddtracker[nCent];
+TProfile *Sinmidoddtracker[nCent];
+
+//EP Plots
+//Even
+   //Whole Tracker
+TH1F *PsiEvenRaw[nCent];
+TH1F *PsiEvenFinal[nCent];
+   //Pos Tracker
+TH1F *PsiPEvenRaw[nCent];
+TH1F *PsiPEvenFinal[nCent];
+   //Neg Tracker
+TH1F *PsiNEvenRaw[nCent];
+TH1F *PsiNEvenFinal[nCent];
+   //Mid Tracker
+TH1F *PsiMEvenRaw[nCent];
+TH1F *PsiMEvenFinal[nCent];
+
+//Odd
+  //Whole Tracker 
+TH1F *PsiOddRaw[nCent];
+TH1F *PsiOddFinal[nCent];
+   //Pos Tracker
+TH1F *PsiPOddRaw[nCent];
+TH1F *PsiPOddFinal[nCent];
+   //Neg Tracker
+TH1F *PsiNOddRaw[nCent];
+TH1F *PsiNOddFinal[nCent];
+   //Mid Tracker
+TH1F *PsiMOddRaw[nCent];
+TH1F *PsiMOddFinal[nCent];
+/////////////////////////////////////////
+/// Variables that are used in the //////
+// Flow Analysis function////////////////
+/////////////////////////////////////////
+
+//RAW EP's
+Float_t EPwholetracker=0.,EPpostracker=0.,EPnegtracker=0.,EPmidtracker=0.,
+  EPwholeoddtracker=0.,EPposoddtracker=0.,EPnegoddtracker=0.,EPmidoddtracker=0.;
+
+
+//v1 even stuff
+Float_t AngularCorrectionWholeTracker=0.,EPfinalwholetracker=0.,
+  AngularCorrectionPosTracker=0.,EPfinalpostracker=0.,
+  AngularCorrectionNegTracker=0.,EPfinalnegtracker=0.,
+  AngularCorrectionMidTracker=0.,EPfinalmidtracker=0.;
+
+
+//v1 odd
+
+Float_t AngularCorrectionWholeOddTracker=0.,EPfinalwholeoddtracker=0.,
+  AngularCorrectionPosOddTracker=0.,EPfinalposoddtracker=0.,
+  AngularCorrectionNegOddTracker=0.,EPfinalnegoddtracker=0.,
+  AngularCorrectionMidOddTracker=0.,EPfinalmidoddtracker=0.;
+
+
+/////////////////
+///FLOW PLOTS////
+////////////////
+TProfile *V1EtaOdd[nCent];
+TProfile *V1EtaEven[nCent];
+TProfile *V1PtEven[nCent];
+TProfile *V1PtOdd[nCent];
+
+///////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
+/////////////////// END OF GLOBAL VARIABLES ///////////////////////
+///////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////
+
+//Running the Macro
+Int_t TRV1_NoRecenter(){//put functions in here
+  Initialize();
+  PTStats();
+  AngularCorrections();
+  FlowAnalysis();
+  return 0;
+}
+
+void Initialize(){
+
+  float eta_bin_small[13]={-0.6,-0.5,-0.4,-0.3,-0.2,-0.1,0.0,0.1,0.2,0.3,0.4,0.5,0.6};
+
+  double pt_bin[17]={0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.4,2.8,3.2,3.6,4.5,6.5,9.5,12};
+
+  chain2= new TChain("hiGoodTightMergedTracksTree");
+
+  //Tracks Tree
+  chain2->Add("/hadoop/store/user/jgomez2/ForwardTrees/2010/PanicTime/Forward*");
+  //chain2->Add("/home/jgomez2/Desktop/Forward*");
+
+  //  NumberOfEvents= chain2->GetEntries();
+  //Create the output ROOT file
+  myFile = new TFile("V1EP_norecenter.root","recreate");
+
+  //Make Subdirectories for what will follow
+  myPlots = myFile->mkdir("Plots");
+  myPlots->cd();
+
+  //Directory for the EP angles
+  epangles = myPlots->mkdir("EventPlanes");
+  //Outer Tracker
+  outerep = epangles->mkdir("WholeTracker");
+  //Pos Tracker
+  posep = epangles->mkdir("PositiveTracker");
+  //Negative Tracker
+  negep = epangles->mkdir("NegativeTracker");
+  //Mid Tracker
+  midep = epangles->mkdir("CentralTracker");
+
+  //Directory for Resolution Plots
+  resolutions = myPlots->mkdir("EventPlaneResolutions");
+  psioneevenres = resolutions->mkdir("PsiOneEvenResolution");
+  psioneoddres = resolutions->mkdir("PsiOneOddResolution");
+
+
+  //Directory For Final v1 plots
+  v1plots = myPlots->mkdir("V1Results");
+  v1etaoddplots = v1plots->mkdir("V1EtaOdd");
+  v1etaevenplots = v1plots->mkdir("V1EtaEven");
+  v1ptevenplots = v1plots->mkdir("V1pTEven");
+  v1ptoddplots = v1plots->mkdir("V1pTOdd");
+
+  //Pt stats
+  ptstatplots = myPlots->mkdir("PtStats");
+
+  //Angular Correction Folders
+  angularcorrectionplots = myPlots->mkdir("AngularCorrectionPlots");
+  //Psi1 Corrections
+  //Psi1 Even Corrections
+  angcorr1even = angularcorrectionplots->mkdir("FirstOrderEPEvenCorrs");
+  wholetrackercorrs = angcorr1even->mkdir("WholeTracker");
+  postrackercorrs= angcorr1even->mkdir("PosTracker");
+  negtrackercorrs= angcorr1even->mkdir("NegTracker");
+  midtrackercorrs = angcorr1even->mkdir("MidTracker");
+
+  //Psi1 Corrections
+  angcorr1odd = angularcorrectionplots->mkdir("FirstOrderEPOddCorrs");
+  wholeoddtrackercorrs = angcorr1odd->mkdir("WholeOddTracker");
+  posoddtrackercorrs= angcorr1odd->mkdir("PosOddTracker");
+  negoddtrackercorrs= angcorr1odd->mkdir("NegOddTracker");
+  midoddtrackercorrs = angcorr1odd->mkdir("MidOddTracker");
+
+
+
+  char ptcentname[128];
+  char ptcenttitle[128];
+
+  char res4name[128],res4title[128];
+  char res5name[128],res5title[128];
+  char res6name[128],res6title[128];
+
+  char ptwholename[128];
+  char ptwholetitle[128];
+
+  char ptposname[128];
+  char ptpostitle[128];
+
+  char ptnegname[128];
+  char ptnegtitle[128];
+
+  char ptmidname[128];
+  char ptmidtitle[128];
+
+
+  //Psi1 Raw, Psi1 Final
+  //Psi1(even)
+  //Whole Tracker
+  char epevenrawname[128],epevenrawtitle[128];
+  char epevenfinalname[128],epevenfinaltitle[128];
+  //Pos Tracker
+  char pevenrawname[128],pevenrawtitle[128];
+  char pevenfinalname[128],pevenfinaltitle[128];
+  //Neg Tracker
+  char nevenrawname[128],nevenrawtitle[128];
+  char nevenfinalname[128],nevenfinaltitle[128];
+  //Mid Tracker
+  char mevenrawname[128],mevenrawtitle[128];
+  char mevenfinalname[128],mevenfinaltitle[128];
+
+  //Psi1(odd)
+  //Whole Tracker
+  char epoddrawname[128],epoddrawtitle[128];
+  char epoddfinalname[128],epoddfinaltitle[128];
+  //Pos Tracker
+  char poddrawname[128],poddrawtitle[128];
+  char poddfinalname[128],poddfinaltitle[128];
+  //Neg Tracker
+  char noddrawname[128],noddrawtitle[128];
+  char noddfinalname[128],noddfinaltitle[128];
+  //Mid Tracker
+  char moddrawname[128],moddrawtitle[128];
+  char moddfinalname[128],moddfinaltitle[128];
+
+  // <Cos> <Sin> plots
+
+  //v1 even
+  char coswholetrackername[128],coswholetrackertitle[128];
+  char cospostrackername[128],cospostrackertitle[128];
+  char cosnegtrackername[128],cosnegtrackertitle[128];
+  char cosmidtrackername[128],cosmidtrackertitle[128];
+
+  char sinwholetrackername[128],sinwholetrackertitle[128];
+  char sinpostrackername[128],sinpostrackertitle[128];
+  char sinnegtrackername[128],sinnegtrackertitle[128];
+  char sinmidtrackername[128],sinmidtrackertitle[128];
+
+  //v1 odd
+  char coswholeoddtrackername[128],coswholeoddtrackertitle[128];
+  char cosposoddtrackername[128],cosposoddtrackertitle[128];
+  char cosnegoddtrackername[128],cosnegoddtrackertitle[128];
+  char cosmidoddtrackername[128],cosmidoddtrackertitle[128];
+
+  char sinwholeoddtrackername[128],sinwholeoddtrackertitle[128];
+  char sinposoddtrackername[128],sinposoddtrackertitle[128];
+  char sinnegoddtrackername[128],sinnegoddtrackertitle[128];
+  char sinmidoddtrackername[128],sinmidoddtrackertitle[128];
+
+  //V1 Plots
+  char v1etaoddname[128],v1etaoddtitle[128];
+  char v1etaevenname[128],v1etaeventitle[128];
+  char v1ptoddname[128],v1ptoddtitle[128];
+  char v1ptevenname[128],v1pteventitle[128];
+
+
+  //V1 odd resolutions
+  char v1oddres1name[128],v1oddres1title[128];
+  char v1oddres2name[128],v1oddres2title[128];
+  char v1oddres3name[128],v1oddres3title[128];
+
+  for (int i=0;i<nCent;i++)
+    {
+      //V1 odd eta
+      v1etaoddplots->cd();
+      sprintf(v1etaoddname,"V1EtaOdd_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(v1etaoddtitle,"v_{1}^{odd}(#eta) for %1.0lf-%1.0lf %%",centlo[i],centhi[i]);
+      V1EtaOdd[i]= new TProfile(v1etaoddname,v1etaoddtitle,12,eta_bin_small);
+
+      //v1 even eta
+      v1etaevenplots->cd();
+      sprintf(v1etaevenname,"V1EtaEven_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(v1etaeventitle,"v_{1}^{even}(#eta) for %1.0lf-%1.0lf %%",centlo[i],centhi[i]);
+      V1EtaEven[i]= new TProfile(v1etaevenname,v1etaeventitle,12,eta_bin_small);
+
+      //v1 pt even
+      v1ptevenplots->cd();
+      sprintf(v1ptevenname,"V1PtEven_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(v1pteventitle,"v_{1}^{even}(p_{T}) for %1.0lf-%1.0lf %%",centlo[i],centhi[i]);
+      V1PtEven[i]= new TProfile(v1ptevenname,v1pteventitle,16,pt_bin);
+
+
+      //v1 pt odd
+      v1ptoddplots->cd();
+      sprintf(v1ptoddname,"V1PtOdd_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(v1ptoddtitle,"v_{1}^{odd}(p_{T}) for %1.0lf-%1.0lf %%",centlo[i],centhi[i]);
+      V1PtOdd[i]= new TProfile(v1ptoddname,v1ptoddtitle,16,pt_bin);
+
+      v1plots->cd();
+      sprintf(ptcentname,"pTcenter_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(ptcenttitle,"Bin Center for %1.0lf-%1.0lf %%",centlo[i],centhi[i]);
+      PTCenters[i]= new TProfile(ptcentname,ptcenttitle,16,pt_bin); //or can make a TH1f and fill a specific range
+/////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+      //Event Plane Plots
+      outerep->cd();
+      //Psi1Even
+      //Whole Tracker
+      //Raw
+      sprintf(epevenrawname,"Psi1EvenRaw_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(epevenrawtitle,"#Psi_{1}^{even} Raw %1.0lfto%1.0lf",centlo[i],centhi[i]);
+      PsiEvenRaw[i] = new TH1F(epevenrawname,epevenrawtitle,100,-TMath::Pi()-.392699,TMath::Pi()+.392699);
+      PsiEvenRaw[i]->GetXaxis()->SetTitle("EP Angle (radians)");
+      //Final
+      sprintf(epevenfinalname,"Psi1EvenFinal_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(epevenfinaltitle,"#Psi_{1}^{even} Final %1.0lfto%1.0lf",centlo[i],centhi[i]);
+      PsiEvenFinal[i] = new TH1F(epevenfinalname,epevenfinaltitle,100,-TMath::Pi()-.392699,TMath::Pi()+.392699);
+      PsiEvenFinal[i]->GetXaxis()->SetTitle("EP Angle (radians)");
+
+
+     //Pos Tracker
+      posep->cd();
+      //Raw
+      sprintf(pevenrawname,"Psi1PEvenRaw_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(pevenrawtitle,"#Psi_{1}^{even}(TR^{+}) Raw %1.0lfto%1.0lf",centlo[i],centhi[i]);
+      PsiPEvenRaw[i] = new TH1F(pevenrawname,pevenrawtitle,100,-TMath::Pi()-.392699,TMath::Pi()+.392699);
+      PsiPEvenRaw[i]->GetXaxis()->SetTitle("EP Angle (radians)");
+      //Final
+      sprintf(pevenfinalname,"Psi1PEvenFinal_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(pevenfinaltitle,"#Psi_{1}^{even}(TR^{+}) Final %1.0lfto%1.0lf",centlo[i],centhi[i]);
+      PsiPEvenFinal[i] = new TH1F(pevenfinalname,pevenfinaltitle,100,-TMath::Pi()-.392699,TMath::Pi()+.392699);
+      PsiPEvenFinal[i]->GetXaxis()->SetTitle("EP Angle (radians)");
+
+     //Neg Tracker
+      negep->cd();
+      //Raw
+      sprintf(nevenrawname,"Psi1NEvenRaw_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(nevenrawtitle,"#Psi_{1}^{even}(TR^{-}) Raw %1.0lfto%1.0lf",centlo[i],centhi[i]);
+      PsiNEvenRaw[i] = new TH1F(nevenrawname,nevenrawtitle,100,-TMath::Pi()-.392699,TMath::Pi()+.392699);
+      PsiNEvenRaw[i]->GetXaxis()->SetTitle("EP Angle (radians)");
+      //Final
+      sprintf(nevenfinalname,"Psi1NEvenFinal_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(nevenfinaltitle,"#Psi_{1}^{even}(TR^{-}) Final %1.0lfto%1.0lf",centlo[i],centhi[i]);
+      PsiNEvenFinal[i] = new TH1F(nevenfinalname,nevenfinaltitle,100,-TMath::Pi()-.392699,TMath::Pi()+.392699);
+      PsiNEvenFinal[i]->GetXaxis()->SetTitle("EP Angle (radians)");
+
+     //Mid Tracker
+      midep->cd();
+      //Raw
+      sprintf(mevenrawname,"Psi1MEvenRaw_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(mevenrawtitle,"#Psi_{1}^{even}(TR^{mid}) Raw %1.0lfto%1.0lf",centlo[i],centhi[i]);
+      PsiMEvenRaw[i] = new TH1F(mevenrawname,mevenrawtitle,100,-TMath::Pi()-.392699,TMath::Pi()+.392699);
+      PsiMEvenRaw[i]->GetXaxis()->SetTitle("EP Angle (radians)");
+      //Final
+      sprintf(mevenfinalname,"Psi1MEvenFinal_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(mevenfinaltitle,"#Psi_{1}^{even}(TR^{mid}) Final %1.0lfto%1.0lf",centlo[i],centhi[i]);
+      PsiMEvenFinal[i] = new TH1F(mevenfinalname,mevenfinaltitle,100,-TMath::Pi()-.392699,TMath::Pi()+.392699);
+      PsiMEvenFinal[i]->GetXaxis()->SetTitle("EP Angle (radians)");
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+      //Psi1Odd
+      outerep->cd();
+      //WholeTracker
+      //Raw
+      sprintf(epoddrawname,"Psi1OddRaw_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(epoddrawtitle,"#Psi_{1}^{odd} Raw %1.0lfto%1.0lf",centlo[i],centhi[i]);
+      PsiOddRaw[i] = new TH1F(epoddrawname,epoddrawtitle,100,-TMath::Pi()-.392699,TMath::Pi()+.392699);
+      PsiOddRaw[i]->GetXaxis()->SetTitle("EP Angle (radians)");
+      //Final
+      sprintf(epoddfinalname,"Psi1OddFinal_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(epoddfinaltitle,"#Psi_{1}^{odd} Final %1.0lfto%1.0lf",centlo[i],centhi[i]);
+      PsiOddFinal[i] = new TH1F(epoddfinalname,epoddfinaltitle,100,-TMath::Pi()-.392699,TMath::Pi()+.392699);
+      PsiOddFinal[i]->GetXaxis()->SetTitle("EP Angle (radians)");
+
+     //Pos Tracker
+      posep->cd();
+      //Raw
+      sprintf(poddrawname,"Psi1POddRaw_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(poddrawtitle,"#Psi_{1}^{odd}(TR^{+}) Raw %1.0lfto%1.0lf",centlo[i],centhi[i]);
+      PsiPOddRaw[i] = new TH1F(poddrawname,poddrawtitle,100,-TMath::Pi()-.392699,TMath::Pi()+.392699);
+      PsiPOddRaw[i]->GetXaxis()->SetTitle("EP Angle (radians)");
+      //Final
+      sprintf(poddfinalname,"Psi1POddFinal_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(poddfinaltitle,"#Psi_{1}^{odd}(TR^{+}) Final %1.0lfto%1.0lf",centlo[i],centhi[i]);
+      PsiPOddFinal[i] = new TH1F(poddfinalname,poddfinaltitle,100,-TMath::Pi()-.392699,TMath::Pi()+.392699);
+      PsiPOddFinal[i]->GetXaxis()->SetTitle("EP Angle (radians)");
+
+     //Neg Tracker
+      negep->cd();
+      //Raw
+      sprintf(noddrawname,"Psi1NOddRaw_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(noddrawtitle,"#Psi_{1}^{odd}(TR^{-}) Raw %1.0lfto%1.0lf",centlo[i],centhi[i]);
+      PsiNOddRaw[i] = new TH1F(noddrawname,noddrawtitle,100,-TMath::Pi()-.392699,TMath::Pi()+.392699);
+      PsiNOddRaw[i]->GetXaxis()->SetTitle("EP Angle (radians)");
+      //Final
+      sprintf(noddfinalname,"Psi1NOddFinal_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(noddfinaltitle,"#Psi_{1}^{odd}(TR^{-}) Final %1.0lfto%1.0lf",centlo[i],centhi[i]);
+      PsiNOddFinal[i] = new TH1F(noddfinalname,noddfinaltitle,100,-TMath::Pi()-.392699,TMath::Pi()+.392699);
+      PsiNOddFinal[i]->GetXaxis()->SetTitle("EP Angle (radians)");
+
+     //Mid Tracker
+      midep->cd();
+      //Raw
+      sprintf(moddrawname,"Psi1MOddRaw_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(moddrawtitle,"#Psi_{1}^{odd}(TR^{mid}) Raw %1.0lfto%1.0lf",centlo[i],centhi[i]);
+      PsiMOddRaw[i] = new TH1F(moddrawname,moddrawtitle,100,-TMath::Pi()-.392699,TMath::Pi()+.392699);
+      PsiMOddRaw[i]->GetXaxis()->SetTitle("EP Angle (radians)");
+      //Final
+      sprintf(moddfinalname,"Psi1MOddFinal_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(moddfinaltitle,"#Psi_{1}^{odd}(TR^{mid}) Final %1.0lfto%1.0lf",centlo[i],centhi[i]);
+      PsiMOddFinal[i] = new TH1F(moddfinalname,moddfinaltitle,100,-TMath::Pi()-.392699,TMath::Pi()+.392699);
+      PsiMOddFinal[i]->GetXaxis()->SetTitle("EP Angle (radians)");
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////
+      //For Resolution of V1 Even
+      psioneevenres->cd();
+      sprintf(res4name,"TRPMinusTRM_EPResolution_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(res4title,"First Order EP resolution TRPMinusTRM %1.0lf-%1.0lf %%",centlo[i],centhi[i]);
+      TRPMinusTRM[i]= new TProfile(res4name,res4title,1,0,1);
+
+      sprintf(res5name,"TRMMinusTRC_EPResolution_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(res5title,"First Order EP resolution TRMMinusTRC %1.0lf-%1.0lf %%",centlo[i],centhi[i]);
+      TRMMinusTRC[i]= new TProfile(res5name,res5title,1,0,1);
+
+      sprintf(res6name,"TRPMinusTRC_EPResolution_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(res6title,"First Order EP resolution TRPMinusTRC %1.0lf-%1.0lf %%",centlo[i],centhi[i]);
+      TRPMinusTRC[i]= new TProfile(res6name,res6title,1,0,1);
+
+
+      //For Resolution of V1 Odd
+      psioneoddres->cd();
+      sprintf(v1oddres1name,"TRPMinusTRMOdd_EPResolution_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(v1oddres1title,"First Order EP resolution TRPMinusTRMOdd %1.0lf-%1.0lf %%",centlo[i],centhi[i]);
+      TRPMinusTRMOdd[i]= new TProfile(v1oddres1name,v1oddres1title,1,0,1);
+
+      sprintf(v1oddres2name,"TRMMinusTRCOdd_EPResolution_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(v1oddres2title,"First Order EP resolution TRMMinusTRCOdd %1.0lf-%1.0lf %%",centlo[i],centhi[i]);
+      TRMMinusTRCOdd[i]= new TProfile(v1oddres2name,v1oddres2title,1,0,1);
+
+      sprintf(v1oddres3name,"TRPMinusTRCOdd_EPResolution_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(v1oddres3title,"First Order EP resolution TRPMinusTRCOdd %1.0lf-%1.0lf %%",centlo[i],centhi[i]);
+      TRPMinusTRCOdd[i]= new TProfile(v1oddres3name,v1oddres3title,1,0,1);
+
+
+
+      //PT stats plots
+
+      //whole tracker
+      ptstatplots->cd();
+      sprintf(ptwholename,"PtStatsWhole_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(ptwholetitle,"p_{T} stats for whole tracker %1.0lf-%1.0lf %%",centlo[i],centhi[i]);
+      PtStatsWhole[i]= new TProfile(ptwholename,ptwholetitle,2,0,2);
+      PtStatsWhole[i]->GetXaxis()->SetBinLabel(1,"<p_{T}>");
+      PtStatsWhole[i]->GetXaxis()->SetBinLabel(2,"<p_{T}^{2}>");
+
+      //Pos tracker
+      sprintf(ptposname,"PtStatsPos_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(ptpostitle,"p_{T} stats for positive #eta tracker %1.0lf-%1.0lf %%",centlo[i],centhi[i]);
+      PtStatsPos[i]= new TProfile(ptposname,ptpostitle,2,0,2);
+      PtStatsPos[i]->GetXaxis()->SetBinLabel(1,"<p_{T}>");
+      PtStatsPos[i]->GetXaxis()->SetBinLabel(2,"<p_{T}^{2}>");
+
+      //Neg tracker
+      sprintf(ptnegname,"PtStatsNeg_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(ptnegtitle,"p_{T} stats for negative #eta tracker %1.0lf-%1.0lf %%",centlo[i],centhi[i]);
+      PtStatsNeg[i]= new TProfile(ptnegname,ptnegtitle,2,0,2);
+      PtStatsNeg[i]->GetXaxis()->SetBinLabel(1,"<p_{T}>");
+      PtStatsNeg[i]->GetXaxis()->SetBinLabel(2,"<p_{T}^{2}>");
+
+      //Mid tracker
+      sprintf(ptmidname,"PtStatsMid_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(ptmidtitle,"p_{T} stats for mid-rapidity tracker %1.0lf-%1.0lf %%",centlo[i],centhi[i]);
+      PtStatsMid[i]= new TProfile(ptmidname,ptmidtitle,2,0,2);
+      PtStatsMid[i]->GetXaxis()->SetBinLabel(1,"<p_{T}>");
+      PtStatsMid[i]->GetXaxis()->SetBinLabel(2,"<p_{T}^{2}>");
+
+      ///////////////////////////////
+      ////////<cos>,<sin> plots//////
+      ///////////////////////////////
+
+      //v1 even
+      //Whole tracker
+      wholetrackercorrs->cd();
+      sprintf(coswholetrackername,"CosValues_WholeTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(coswholetrackertitle,"CosValues_WholeTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      Coswholetracker[i] = new TProfile(coswholetrackername,coswholetrackertitle,jMax,0,jMax);
+      Coswholetracker[i]->GetYaxis()->SetTitle("<cos(Xbin*Psi)>");
+
+
+      sprintf(sinwholetrackername,"SinValues_WholeTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(sinwholetrackertitle,"SinValues_WholeTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      Sinwholetracker[i] = new TProfile(sinwholetrackername,sinwholetrackertitle,jMax,0,jMax);
+      Sinwholetracker[i]->GetYaxis()->SetTitle("<sin(Xbin*Psi)>");
+
+      //Pos Tracker
+      postrackercorrs->cd();
+      sprintf(cospostrackername,"CosValues_PosTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(cospostrackertitle,"CosValues_PosTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      Cospostracker[i] = new TProfile(cospostrackername,cospostrackertitle,jMax,0,jMax);
+      Cospostracker[i]->GetYaxis()->SetTitle("<cos(Xbin*Psi)>");
+
+
+      sprintf(sinpostrackername,"SinValues_PosTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(sinpostrackertitle,"SinValues_PosTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      Sinpostracker[i] = new TProfile(sinpostrackername,sinpostrackertitle,jMax,0,jMax);
+      Sinpostracker[i]->GetYaxis()->SetTitle("<sin(Xbin*Psi)>");
+
+      //Neg Tracker
+      negtrackercorrs->cd();
+      sprintf(cosnegtrackername,"CosValues_NegTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(cosnegtrackertitle,"CosValues_NegTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      Cosnegtracker[i] = new TProfile(cosnegtrackername,cosnegtrackertitle,jMax,0,jMax);
+      Cosnegtracker[i]->GetYaxis()->SetTitle("<cos(Xbin*Psi)>");
+
+
+      sprintf(sinnegtrackername,"SinValues_NegTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(sinnegtrackertitle,"SinValues_NegTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      Sinnegtracker[i] = new TProfile(sinnegtrackername,sinnegtrackertitle,jMax,0,jMax);
+      Sinnegtracker[i]->GetYaxis()->SetTitle("<sin(Xbin*Psi)>");
+
+      //Mid Tracker
+      midtrackercorrs->cd();
+      sprintf(cosmidtrackername,"CosValues_MidTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(cosmidtrackertitle,"CosValues_MidTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      Cosmidtracker[i] = new TProfile(cosmidtrackername,cosmidtrackertitle,jMax,0,jMax);
+      Cosmidtracker[i]->GetYaxis()->SetTitle("<cos(Xbin*Psi)>");
+
+
+      sprintf(sinmidtrackername,"SinValues_MidTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(sinmidtrackertitle,"SinValues_MidTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      Sinmidtracker[i] = new TProfile(sinmidtrackername,sinmidtrackertitle,jMax,0,jMax);
+      Sinmidtracker[i]->GetYaxis()->SetTitle("<sin(Xbin*Psi)>");
+
+
+      //v1 odd
+      //Whole tracker
+      wholeoddtrackercorrs->cd();
+      sprintf(coswholeoddtrackername,"CosValues_WholeOddTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(coswholeoddtrackertitle,"CosValues_WholeOddTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      Coswholeoddtracker[i] = new TProfile(coswholeoddtrackername,coswholeoddtrackertitle,jMax,0,jMax);
+      Coswholeoddtracker[i]->GetYaxis()->SetTitle("<cos(Xbin*Psi)>");
+
+
+      sprintf(sinwholeoddtrackername,"SinValues_WholeOddTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(sinwholeoddtrackertitle,"SinValues_WholeOddTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      Sinwholeoddtracker[i] = new TProfile(sinwholeoddtrackername,sinwholeoddtrackertitle,jMax,0,jMax);
+      Sinwholeoddtracker[i]->GetYaxis()->SetTitle("<sin(Xbin*Psi)>");
+
+      //Pos Tracker
+      posoddtrackercorrs->cd();
+      sprintf(cosposoddtrackername,"CosValues_PosOddTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(cosposoddtrackertitle,"CosValues_PosOddTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      Cosposoddtracker[i] = new TProfile(cosposoddtrackername,cosposoddtrackertitle,jMax,0,jMax);
+      Cosposoddtracker[i]->GetYaxis()->SetTitle("<cos(Xbin*Psi)>");
+
+
+      sprintf(sinposoddtrackername,"SinValues_PosOddTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(sinposoddtrackertitle,"SinValues_PosOddTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      Sinposoddtracker[i] = new TProfile(sinposoddtrackername,sinposoddtrackertitle,jMax,0,jMax);
+      Sinposoddtracker[i]->GetYaxis()->SetTitle("<sin(Xbin*Psi)>");
+
+      //Neg Tracker
+      negoddtrackercorrs->cd();
+      sprintf(cosnegoddtrackername,"CosValues_NegOddTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(cosnegoddtrackertitle,"CosValues_NegOddTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      Cosnegoddtracker[i] = new TProfile(cosnegoddtrackername,cosnegoddtrackertitle,jMax,0,jMax);
+      Cosnegoddtracker[i]->GetYaxis()->SetTitle("<cos(Xbin*Psi)>");
+
+
+      sprintf(sinnegoddtrackername,"SinValues_NegOddTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(sinnegoddtrackertitle,"SinValues_NegOddTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      Sinnegoddtracker[i] = new TProfile(sinnegoddtrackername,sinnegoddtrackertitle,jMax,0,jMax);
+      Sinnegoddtracker[i]->GetYaxis()->SetTitle("<sin(Xbin*Psi)>");
+
+      //Mid Tracker
+      midoddtrackercorrs->cd();
+      sprintf(cosmidoddtrackername,"CosValues_MidOddTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(cosmidoddtrackertitle,"CosValues_MidOddTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      Cosmidoddtracker[i] = new TProfile(cosmidoddtrackername,cosmidoddtrackertitle,jMax,0,jMax);
+      Cosmidoddtracker[i]->GetYaxis()->SetTitle("<cos(Xbin*Psi)>");
+
+
+      sprintf(sinmidoddtrackername,"SinValues_MidOddTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      sprintf(sinmidoddtrackertitle,"SinValues_MidOddTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      Sinmidoddtracker[i] = new TProfile(sinmidoddtrackername,sinmidoddtrackertitle,jMax,0,jMax);
+      Sinmidoddtracker[i]->GetYaxis()->SetTitle("<sin(Xbin*Psi)>");
+    }//end of centrality loop
+}//end of initialize function
+
+void PTStats(){
+  for (int i=0;i<NumberOfEvents;i++)
+    {
+      if ( !(i%10000) ) cout << " 1st round, event # " << i << " / " << NumberOfEvents << endl;
+
+      chain2->GetEntry(i);//grab the ith event
+
+      //Grab the Track Leaves
+      NumTracks= (TLeaf*) chain2->GetLeaf("nTracks");
+      TrackMom= (TLeaf*) chain2->GetLeaf("pt");
+      TrackPhi= (TLeaf*) chain2->GetLeaf("phi");
+      TrackEta= (TLeaf*) chain2->GetLeaf("eta");
+
+      //Grab the Centrality Leaves
+      CENTRAL= (TLeaf*) chain2->GetLeaf("bin");
+      Centrality= CENTRAL->GetValue();
+      //std::cout<<Centrality<<std::endl;
+      if (Centrality>19) continue; //we dont care about any centrality greater than 60%
+
+      //Loop over all of the Reconstructed Tracks
+      NumberOfHits= NumTracks->GetValue();
+      for (int ii=0;ii<NumberOfHits;ii++)
+        {
+          pT=0.;
+          phi=0.;
+          eta=0.;
+          pT=TrackMom->GetValue(ii);
+          phi=TrackPhi->GetValue(ii);
+          eta=TrackEta->GetValue(ii);
+          if(pT<0)
+            {
+              continue;
+            }
+          //  std::cout<<pT<< " and "<<eta<<std::endl;
+          for (Int_t c=0;c<nCent;c++)
+            {
+              myPlots->cd();
+              if ( (Centrality*2.5) > centhi[c] ) continue;
+              if ( (Centrality*2.5) < centlo[c] ) continue;
+              if (eta>=1.4)
+                {
+                  PtStatsWhole[c]->Fill(0,pT);
+                  PtStatsWhole[c]->Fill(1,pT*pT);
+                  PtStatsPos[c]->Fill(0,pT);
+                  PtStatsPos[c]->Fill(1,pT*pT);
+                }
+              else if (eta<=-1.4)
+                {
+                  PtStatsWhole[c]->Fill(0,pT);
+                  PtStatsWhole[c]->Fill(1,pT*pT);
+                  PtStatsNeg[c]->Fill(0,pT);
+                  PtStatsNeg[c]->Fill(1,pT*pT);
+                }
+              else if (fabs(eta)<=0.6)
+                {
+                  PtStatsMid[c]->Fill(0,pT);
+                  PtStatsMid[c]->Fill(1,pT*pT);
+                }
+            }//end of looping over centralities
+        }//end of loop over tracks
+    }//end of loop over events
+
+
+  for (Int_t cent_iter=0;cent_iter<nCent;cent_iter++)
+    {
+      //Whole Tracker
+      ptavwhole[cent_iter]=PtStatsWhole[cent_iter]->GetBinContent(1);
+      pt2avwhole[cent_iter]=PtStatsWhole[cent_iter]->GetBinContent(2);
+
+      //Positive Eta Tracker
+      ptavpos[cent_iter]=PtStatsPos[cent_iter]->GetBinContent(1);
+      pt2avpos[cent_iter]=PtStatsPos[cent_iter]->GetBinContent(2);
+
+      //Negative Eta Tracker
+      ptavneg[cent_iter]=PtStatsNeg[cent_iter]->GetBinContent(1);
+      pt2avneg[cent_iter]=PtStatsNeg[cent_iter]->GetBinContent(2);
+
+      //Mid-rapidity Tracker
+      ptavmid[cent_iter]=PtStatsMid[cent_iter]->GetBinContent(1);
+      pt2avmid[cent_iter]=PtStatsMid[cent_iter]->GetBinContent(2);
+    }//end of loop over centralities
+
+  //  myFile->Write();
+  // delete myFile;
+}//end of ptstats function
+
+
+void AngularCorrections(){
+
+  for (Int_t i=0;i<NumberOfEvents;i++)
+    {
+      if ( !(i%10000) ) cout << " 2nd round, event # " << i << " / " << NumberOfEvents << endl;
+
+      chain2->GetEntry(i);//grab the ith event
+
+      //Grab the Track Leaves
+      NumTracks= (TLeaf*) chain2->GetLeaf("nTracks");
+      TrackMom= (TLeaf*) chain2->GetLeaf("pt");
+      TrackPhi= (TLeaf*) chain2->GetLeaf("phi");
+      TrackEta= (TLeaf*) chain2->GetLeaf("eta");
+
+      //Grab the Centrality Leaves
+      CENTRAL= (TLeaf*) chain2->GetLeaf("bin");
+      Centrality= CENTRAL->GetValue();
+      if (Centrality>19) continue; //we dont care about any centrality greater than 60%
+
+      //Zero the Looping Variables
+      for (int q=0;q<nCent;q++)
+        {
+          //v1 Even
+          X_wholetracker[q]=0.;
+          Y_wholetracker[q]=0.;
+          X_postracker[q]=0.;
+          Y_postracker[q]=0.;
+          X_negtracker[q]=0.;
+          Y_negtracker[q]=0.;
+          X_midtracker[q]=0.;
+          Y_midtracker[q]=0.;
+
+          //v1 Odd
+          X_wholeoddtracker[q]=0.;
+          Y_wholeoddtracker[q]=0.;
+          X_posoddtracker[q]=0.;
+          Y_posoddtracker[q]=0.;
+          X_negoddtracker[q]=0.;
+          Y_negoddtracker[q]=0.;
+          X_midoddtracker[q]=0.;
+          Y_midoddtracker[q]=0.;
+        }
+
+      NumberOfHits= NumTracks->GetValue();
+      for (Int_t ii=0;ii<NumberOfHits;ii++)
+        {
+          pT=0.;
+          phi=0.;
+          eta=0.;
+          pT=TrackMom->GetValue(ii);
+          phi=TrackPhi->GetValue(ii);
+          eta=TrackEta->GetValue(ii);
+          if(pT<0)
+            {
+              continue;
+            }
+          for (Int_t c=0;c<nCent;c++)
+            {
+              if ( (Centrality*2.5) > centhi[c] ) continue;
+              if ( (Centrality*2.5) < centlo[c] ) continue;
+              if(eta>=1.4)
+                {
+                  X_wholetracker[c]+=cos(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
+                  Y_wholetracker[c]+=sin(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
+                  X_postracker[c]+=cos(phi)*(pT-(pt2avpos[c]/ptavpos[c]));
+                  Y_postracker[c]+=sin(phi)*(pT-(pt2avpos[c]/ptavpos[c]));
+                  //v1 odd
+                  X_wholeoddtracker[c]+=cos(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
+                  //X_wholeoddtracker[c]+=cos(phi)*(pT);
+                  Y_wholeoddtracker[c]+=sin(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
+                  //Y_wholeoddtracker[c]+=sin(phi)*(pT);
+                  X_posoddtracker[c]+=cos(phi)*(pT-(pt2avpos[c]/ptavpos[c]));
+                  //X_posoddtracker[c]+=cos(phi)*(pT);
+                  Y_posoddtracker[c]+=sin(phi)*(pT-(pt2avpos[c]/ptavpos[c]));
+                  //Y_posoddtracker[c]+=sin(phi)*(pT);
+                }
+              else if(eta<=-1.4)
+                {
+                  X_wholetracker[c]+=cos(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
+                  Y_wholetracker[c]+=sin(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
+                  X_negtracker[c]+=cos(phi)*(pT-(pt2avneg[c]/ptavneg[c]));
+                  Y_negtracker[c]+=sin(phi)*(pT-(pt2avneg[c]/ptavneg[c]));
+                  //v1 odd
+                  X_wholeoddtracker[c]+=cos(phi)*(-1.0*(pT-(pt2avwhole[c]/ptavwhole[c])));
+                  //X_wholeoddtracker[c]+=cos(phi)*(-1.0*pT);
+                  Y_wholeoddtracker[c]+=sin(phi)*(-1.0*(pT-(pt2avwhole[c]/ptavwhole[c])));
+                  //Y_wholeoddtracker[c]+=sin(phi)*(-1.0*pT);
+                  X_negoddtracker[c]+=cos(phi)*(-1.0*(pT-(pt2avneg[c]/ptavneg[c])));
+                  //X_negoddtracker[c]+=cos(phi)*(-1.0*pT);
+                  Y_negoddtracker[c]+=sin(phi)*(-1.0*(pT-(pt2avneg[c]/ptavneg[c])));
+                  //Y_negoddtracker[c]+=sin(phi)*(-1.0*pT);
+                }
+              else if(eta<=0.6 && eta>0)
+                {
+                  X_midtracker[c]+=cos(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
+                  Y_midtracker[c]+=sin(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
+                  //v1 odd
+                  X_midoddtracker[c]+=cos(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
+                  //X_midoddtracker[c]+=cos(phi)*(pT);
+                  Y_midoddtracker[c]+=sin(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
+                  //Y_midoddtracker[c]+=sin(phi)*(pT);
+                }
+              else if(eta>=-0.6 && eta<0)
+                {
+                  X_midtracker[c]+=cos(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
+                  Y_midtracker[c]+=sin(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
+                  //v1 odd
+                  X_midoddtracker[c]+=cos(phi)*(-1.0*(pT-(pt2avmid[c]/ptavmid[c])));
+                  //X_midoddtracker[c]+=cos(phi)*(-1.0*pT);
+                  Y_midoddtracker[c]+=sin(phi)*(-1.0*(pT-(pt2avmid[c]/ptavmid[c])));
+                  //Y_midoddtracker[c]+=sin(phi)*(-1.0*pT);
+                }
+            }//end of loop over centrality classes
+        }//end of loop over tracks
+
+
+      //Time to fill the appropriate histograms, this will be <cos> <sin>
+      for (Int_t c=0;c<nCent;c++)
+        {
+          if ( (Centrality*2.5) > centhi[c] ) continue;
+          if ( (Centrality*2.5) < centlo[c] ) continue;
+          //V1 even
+          //Whole Tracker
+          EPwholetracker=(1./1.)*atan2(Y_wholetracker[c],X_wholetracker[c]);
+          if (EPwholetracker>(pi)) EPwholetracker=(EPwholetracker-(TMath::TwoPi()));
+          if (EPwholetracker<(-1.0*(pi))) EPwholetracker=(EPwholetracker+(TMath::TwoPi()));
+
+          //Pos Tracker
+          EPpostracker=(1./1.)*atan2(Y_postracker[c],X_postracker[c]);
+          if (EPpostracker>(pi)) EPpostracker=(EPpostracker-(TMath::TwoPi()));
+          if (EPpostracker<(-1.0*(pi))) EPpostracker=(EPpostracker+(TMath::TwoPi()));
+
+          //neg Tracker
+          EPnegtracker=(1./1.)*atan2(Y_negtracker[c],X_negtracker[c]);
+          if (EPnegtracker>(pi)) EPnegtracker=(EPnegtracker-(TMath::TwoPi()));
+          if (EPnegtracker<(-1.0*(pi))) EPnegtracker=(EPnegtracker+(TMath::TwoPi()));
+
+          //mid Tracker
+          EPmidtracker=(1./1.)*atan2(Y_midtracker[c],X_midtracker[c]);
+          if (EPmidtracker>(pi)) EPmidtracker=(EPmidtracker-(TMath::TwoPi()));
+          if (EPmidtracker<(-1.0*(pi))) EPmidtracker=(EPmidtracker+(TMath::TwoPi()));
+
+          //V1 Odd
+          //Whole Tracker
+          EPwholeoddtracker=(1./1.)*atan2(Y_wholeoddtracker[c],X_wholeoddtracker[c]);
+          if (EPwholeoddtracker>(pi)) EPwholeoddtracker=(EPwholeoddtracker-(TMath::TwoPi()));
+          if (EPwholeoddtracker<(-1.0*(pi))) EPwholeoddtracker=(EPwholeoddtracker+(TMath::TwoPi()));
+
+          //Pos Tracker
+          EPposoddtracker=(1./1.)*atan2(Y_posoddtracker[c],X_posoddtracker[c]);
+          if (EPposoddtracker>(pi)) EPposoddtracker=(EPposoddtracker-(TMath::TwoPi()));
+          if (EPposoddtracker<(-1.0*(pi))) EPposoddtracker=(EPposoddtracker+(TMath::TwoPi()));
+
+          //neg Tracker
+          EPnegoddtracker=(1./1.)*atan2(Y_negoddtracker[c],X_negoddtracker[c]);
+          if (EPnegoddtracker>(pi)) EPnegoddtracker=(EPnegoddtracker-(TMath::TwoPi()));
+          if (EPnegoddtracker<(-1.0*(pi))) EPnegoddtracker=(EPnegoddtracker+(TMath::TwoPi()));
+
+          //mid Tracker
+          EPmidoddtracker=(1./1.)*atan2(Y_midoddtracker[c],X_midoddtracker[c]);
+          if (EPmidoddtracker>(pi)) EPmidoddtracker=(EPmidoddtracker-(TMath::TwoPi()));
+          if (EPmidoddtracker<(-1.0*(pi))) EPmidoddtracker=(EPmidoddtracker+(TMath::TwoPi()));
+
+          for (int k=1;k<(jMax+1);k++)
+            {
+              //v1 odd
+              //Whole Tracker
+              Coswholeoddtracker[c]->Fill(k-1,cos(k*EPwholeoddtracker));
+              Sinwholeoddtracker[c]->Fill(k-1,sin(k*EPwholeoddtracker));
+
+              //Pos Tracker
+              Cosposoddtracker[c]->Fill(k-1,cos(k*EPposoddtracker));
+              Sinposoddtracker[c]->Fill(k-1,sin(k*EPposoddtracker));
+
+              //Neg Tracker
+              Cosnegoddtracker[c]->Fill(k-1,cos(k*EPnegoddtracker));
+              Sinnegoddtracker[c]->Fill(k-1,sin(k*EPnegoddtracker));
+
+              //Mid Tracker
+              Cosmidoddtracker[c]->Fill(k-1,cos(k*EPmidoddtracker));
+              Sinmidoddtracker[c]->Fill(k-1,sin(k*EPmidoddtracker));
+
+              //v1 even
+              //Whole Tracker
+              Coswholetracker[c]->Fill(k-1,cos(k*EPwholetracker));
+              Sinwholetracker[c]->Fill(k-1,sin(k*EPwholetracker));
+
+              //Pos Tracker
+              Cospostracker[c]->Fill(k-1,cos(k*EPpostracker));
+              Sinpostracker[c]->Fill(k-1,sin(k*EPpostracker));
+
+              //Neg Tracker
+              Cosnegtracker[c]->Fill(k-1,cos(k*EPnegtracker));
+              Sinnegtracker[c]->Fill(k-1,sin(k*EPnegtracker));
+
+              //Mid Tracker
+              Cosmidtracker[c]->Fill(k-1,cos(k*EPmidtracker));
+              Sinmidtracker[c]->Fill(k-1,sin(k*EPmidtracker));
+            }//end of loop over K
+        }//end of loop over centrality clases
+    }//end of loop over events
+}//End of Angular Corrections Function
+
+
+void FlowAnalysis(){
+  for (Int_t i=0;i<NumberOfEvents;i++)
+    {
+      if ( !(i%10000) ) cout << " 3rd round, event # " << i << " / " << NumberOfEvents << endl;
+
+      chain2->GetEntry(i);//grab the ith event
+
+      //Grab the Track Leaves
+      NumTracks= (TLeaf*) chain2->GetLeaf("nTracks");
+      TrackMom= (TLeaf*) chain2->GetLeaf("pt");
+      TrackPhi= (TLeaf*) chain2->GetLeaf("phi");
+      TrackEta= (TLeaf*) chain2->GetLeaf("eta");
+
+      //Grab the Centrality Leaves
+      CENTRAL= (TLeaf*) chain2->GetLeaf("bin");
+      Centrality= CENTRAL->GetValue();
+      if (Centrality>19) continue; //we dont care about any centrality greater than 60%
+
+
+      for (int q=0;q<nCent;q++)
+        {
+          //v1 Even
+          X_wholetracker[q]=0.;
+          Y_wholetracker[q]=0.;
+          X_postracker[q]=0.;
+          Y_postracker[q]=0.;
+          X_negtracker[q]=0.;
+          Y_negtracker[q]=0.;
+          X_midtracker[q]=0.;
+          Y_midtracker[q]=0.;
+
+          //v1 odd
+          X_wholeoddtracker[q]=0.;
+          Y_wholeoddtracker[q]=0.;
+          X_posoddtracker[q]=0.;
+          Y_posoddtracker[q]=0.;
+          X_negoddtracker[q]=0.;
+          Y_negoddtracker[q]=0.;
+          X_midoddtracker[q]=0.;
+          Y_midoddtracker[q]=0.;
+        }
+
+      NumberOfHits= NumTracks->GetValue();
+      for (Int_t ii=0;ii<NumberOfHits;ii++)
+        {
+          pT=0.;
+          phi=0.;
+          eta=0.;
+          pT=TrackMom->GetValue(ii);
+          phi=TrackPhi->GetValue(ii);
+          eta=TrackEta->GetValue(ii);
+          if(pT<0)
+            {
+              continue;
+            }
+          for (Int_t c=0;c<nCent;c++)
+            {
+              if ( (Centrality*2.5) > centhi[c] ) continue;
+              if ( (Centrality*2.5) < centlo[c] ) continue;
+              if(eta>=1.4)
+                {
+                  X_wholetracker[c]+=cos(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
+                  Y_wholetracker[c]+=sin(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
+                  X_postracker[c]+=cos(phi)*(pT-(pt2avpos[c]/ptavpos[c]));
+                  Y_postracker[c]+=sin(phi)*(pT-(pt2avpos[c]/ptavpos[c]));
+                  //v1 odd
+                  X_wholeoddtracker[c]+=cos(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
+                  Y_wholeoddtracker[c]+=sin(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
+                  X_posoddtracker[c]+=cos(phi)*(pT-(pt2avpos[c]/ptavpos[c]));
+                  Y_posoddtracker[c]+=sin(phi)*(pT-(pt2avpos[c]/ptavpos[c]));
+                }
+              else if(eta<=-1.4)
+                {
+                  X_wholetracker[c]+=cos(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
+                  Y_wholetracker[c]+=sin(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
+                  X_negtracker[c]+=cos(phi)*(pT-(pt2avneg[c]/ptavneg[c]));
+                  Y_negtracker[c]+=sin(phi)*(pT-(pt2avneg[c]/ptavneg[c]));
+                  //v1 odd
+                  X_wholeoddtracker[c]+=cos(phi)*(-1.0*(pT-(pt2avwhole[c]/ptavwhole[c])));
+                  Y_wholeoddtracker[c]+=sin(phi)*(-1.0*(pT-(pt2avwhole[c]/ptavwhole[c])));
+                  X_negoddtracker[c]+=cos(phi)*(-1.0*(pT-(pt2avneg[c]/ptavneg[c])));
+                  Y_negoddtracker[c]+=sin(phi)*(-1.0*(pT-(pt2avneg[c]/ptavneg[c])));
+                }
+              else if(eta<=0.6 && eta>0)
+                {
+                  X_midtracker[c]+=cos(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
+                  Y_midtracker[c]+=sin(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
+                  //v1 odd
+                  X_midoddtracker[c]+=cos(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
+                  Y_midoddtracker[c]+=sin(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
+                }
+              else if(eta>=-0.6 && eta<0)
+                {
+                  X_midtracker[c]+=cos(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
+                  Y_midtracker[c]+=sin(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
+                  //v1 odd
+                  X_midoddtracker[c]+=cos(phi)*(-1.0*(pT-(pt2avmid[c]/ptavmid[c])));
+                  Y_midoddtracker[c]+=sin(phi)*(-1.0*(pT-(pt2avmid[c]/ptavmid[c])));
+                }
+            }//end of loop over centrality classes
+        }//end of loop over tracks
+
+
+      //Time to fill the appropriate histograms, this will be <X> <Y>
+      for (Int_t c=0;c<nCent;c++)
+        {
+          if ( (Centrality*2.5) > centhi[c] ) continue;
+          if ( (Centrality*2.5) < centlo[c] ) continue;
+
+          //V1 even
+          //Whole Tracker
+          EPwholetracker=(1./1.)*atan2(Y_wholetracker[c],X_wholetracker[c]);
+          if (EPwholetracker>(pi)) EPwholetracker=(EPwholetracker-(TMath::TwoPi()));
+          if (EPwholetracker<(-1.0*(pi))) EPwholetracker=(EPwholetracker+(TMath::TwoPi()));
+          PsiEvenRaw[c]->Fill(EPwholetracker);
+
+
+          //Pos Tracker
+          EPpostracker=(1./1.)*atan2(Y_postracker[c],X_postracker[c]);
+          if (EPpostracker>(pi)) EPpostracker=(EPpostracker-(TMath::TwoPi()));
+          if (EPpostracker<(-1.0*(pi))) EPpostracker=(EPpostracker+(TMath::TwoPi()));
+          PsiPEvenRaw[c]->Fill(EPpostracker);
+
+          //neg Tracker
+          EPnegtracker=(1./1.)*atan2(Y_negtracker[c],X_negtracker[c]);
+          if (EPnegtracker>(pi)) EPnegtracker=(EPnegtracker-(TMath::TwoPi()));
+          if (EPnegtracker<(-1.0*(pi))) EPnegtracker=(EPnegtracker+(TMath::TwoPi()));
+          PsiNEvenRaw[c]->Fill(EPnegtracker);
+
+
+          //mid Tracker
+          EPmidtracker=(1./1.)*atan2(Y_midtracker[c],X_midtracker[c]);
+          if (EPmidtracker>(pi)) EPmidtracker=(EPmidtracker-(TMath::TwoPi()));
+          if (EPmidtracker<(-1.0*(pi))) EPmidtracker=(EPmidtracker+(TMath::TwoPi()));
+          PsiMEvenRaw[c]->Fill(EPmidtracker);
+
+          //V1 odd
+          //Whole Tracker
+          EPwholeoddtracker=(1./1.)*atan2(Y_wholeoddtracker[c],X_wholeoddtracker[c]);
+          if (EPwholeoddtracker>(pi)) EPwholeoddtracker=(EPwholeoddtracker-(TMath::TwoPi()));
+          if (EPwholeoddtracker<(-1.0*(pi))) EPwholeoddtracker=(EPwholeoddtracker+(TMath::TwoPi()));
+          PsiOddRaw[c]->Fill(EPwholeoddtracker);
+
+
+          //Pos Tracker
+          EPposoddtracker=(1./1.)*atan2(Y_posoddtracker[c],X_posoddtracker[c]);
+          if (EPposoddtracker>(pi)) EPposoddtracker=(EPposoddtracker-(TMath::TwoPi()));
+          if (EPposoddtracker<(-1.0*(pi))) EPposoddtracker=(EPposoddtracker+(TMath::TwoPi()));
+          PsiPOddRaw[c]->Fill(EPposoddtracker);   
+
+          //neg Tracker
+          EPnegoddtracker=(1./1.)*atan2(Y_negoddtracker[c],X_negoddtracker[c]);
+          if (EPnegoddtracker>(pi)) EPnegoddtracker=(EPnegoddtracker-(TMath::TwoPi()));
+          if (EPnegoddtracker<(-1.0*(pi))) EPnegoddtracker=(EPnegoddtracker+(TMath::TwoPi()));
+          PsiNOddRaw[c]->Fill(EPnegoddtracker);
+
+
+          //mid Tracker
+          EPmidoddtracker=(1./1.)*atan2(Y_midoddtracker[c],X_midoddtracker[c]);
+          if (EPmidoddtracker>(pi)) EPmidoddtracker=(EPmidoddtracker-(TMath::TwoPi()));
+          if (EPmidoddtracker<(-1.0*(pi))) EPmidoddtracker=(EPmidoddtracker+(TMath::TwoPi()));
+          PsiMOddRaw[c]->Fill(EPmidoddtracker);
+
+          //Zero the angular correction variables
+
+          //v1 even stuff
+          AngularCorrectionWholeTracker=0.;EPfinalwholetracker=0.;
+          AngularCorrectionPosTracker=0.;EPfinalpostracker=0.;
+          AngularCorrectionNegTracker=0.;EPfinalnegtracker=0.;
+          AngularCorrectionMidTracker=0.;EPfinalmidtracker=0.;
+
+          //v1 odd stuff
+          AngularCorrectionWholeOddTracker=0.;EPfinalwholeoddtracker=0.;
+          AngularCorrectionPosOddTracker=0.;EPfinalposoddtracker=0.;
+          AngularCorrectionNegOddTracker=0.;EPfinalnegoddtracker=0.;
+          AngularCorrectionMidOddTracker=0.;EPfinalmidoddtracker=0.;
+
+          //Compute Angular Corrections
+          for (Int_t k=1;k<(jMax+1);k++)
+            {
+              //v1 even
+              //Whole Tracker
+              AngularCorrectionWholeTracker+=((2./k)*(((-Sinwholetracker[c]->GetBinContent(k))*(cos(k*EPwholetracker)))+((Coswholetracker[c]->GetBinContent(k))*(sin(k*EPwholetracker)))));
+
+              //Pos Tracker
+              AngularCorrectionPosTracker+=((2./k)*(((-Sinpostracker[c]->GetBinContent(k))*(cos(k*EPpostracker)))+((Cospostracker[c]->GetBinContent(k))*(sin(k*EPpostracker)))));
+
+
+              //Neg Tracker
+              AngularCorrectionNegTracker+=((2./k)*(((-Sinnegtracker[c]->GetBinContent(k))*(cos(k*EPnegtracker)))+((Cosnegtracker[c]->GetBinContent(k))*(sin(k*EPnegtracker)))));
+
+              //Mid Tracker
+              AngularCorrectionMidTracker+=((2./k)*(((-Sinmidtracker[c]->GetBinContent(k))*(cos(k*EPmidtracker)))+((Cosmidtracker[c]->GetBinContent(k))*(sin(k*EPmidtracker)))));
+
+              //v1 odd
+              //Whole Tracker
+              AngularCorrectionWholeOddTracker+=((2./k)*(((-Sinwholeoddtracker[c]->GetBinContent(k))*(cos(k*EPwholeoddtracker)))+((Coswholeoddtracker[c]->GetBinContent(k))*(sin(k*EPwholeoddtracker)))));
+
+              //Pos Tracker
+              AngularCorrectionPosOddTracker+=((2./k)*(((-Sinposoddtracker[c]->GetBinContent(k))*(cos(k*EPposoddtracker)))+((Cosposoddtracker[c]->GetBinContent(k))*(sin(k*EPposoddtracker)))));
+
+
+              //Neg Tracker
+              AngularCorrectionNegOddTracker+=((2./k)*(((-Sinnegoddtracker[c]->GetBinContent(k))*(cos(k*EPnegoddtracker)))+((Cosnegoddtracker[c]->GetBinContent(k))*(sin(k*EPnegoddtracker)))));
+
+              //Mid Tracker
+              AngularCorrectionMidOddTracker+=((2./k)*(((-Sinmidoddtracker[c]->GetBinContent(k))*(cos(k*EPmidoddtracker)))+((Cosmidoddtracker[c]->GetBinContent(k))*(sin(k*EPmidoddtracker)))));
+
+
+            }//end of angular correction calculation
+
+
+          //Add the final Corrections to the Event Plane
+          //and store it and do the flow measurement with it
+
+
+          //Tracker
+
+          //v1 even
+          //Whole Tracker
+          EPfinalwholetracker=EPwholetracker+AngularCorrectionWholeTracker;
+          if (EPfinalwholetracker>(pi)) EPfinalwholetracker=(EPfinalwholetracker-(TMath::TwoPi()));
+          if (EPfinalwholetracker<(-1.0*(pi))) EPfinalwholetracker=(EPfinalwholetracker+(TMath::TwoPi()));
+          PsiEvenFinal[c]->Fill(EPfinalwholetracker);
+
+          //Pos Tracker
+          EPfinalpostracker=EPpostracker+AngularCorrectionPosTracker;
+          if (EPfinalpostracker>(pi)) EPfinalpostracker=(EPfinalpostracker-(TMath::TwoPi()));
+          if (EPfinalpostracker<(-1.0*(pi))) EPfinalpostracker=(EPfinalpostracker+(TMath::TwoPi()));
+          PsiPEvenFinal[c]->Fill(EPfinalpostracker);
+
+          //Neg Tracker
+          EPfinalnegtracker=EPnegtracker+AngularCorrectionNegTracker;
+          //if(c==2) std::cout<<EPfinalnegtracker<<std::endl;
+          if (EPfinalnegtracker>(pi)) EPfinalnegtracker=(EPfinalnegtracker-(TMath::TwoPi()));
+          if (EPfinalnegtracker<(-1.0*(pi))) EPfinalnegtracker=(EPfinalnegtracker+(TMath::TwoPi()));
+          PsiNEvenFinal[c]->Fill(EPfinalnegtracker);
+
+
+          //Mid Tracker
+          EPfinalmidtracker=EPmidtracker+AngularCorrectionMidTracker;
+          if (EPfinalmidtracker>(pi)) EPfinalmidtracker=(EPfinalmidtracker-(TMath::TwoPi()));
+          if (EPfinalmidtracker<(-1.0*(pi))) EPfinalmidtracker=(EPfinalmidtracker+(TMath::TwoPi()));
+          PsiMEvenFinal[c]->Fill(EPfinalmidtracker);
+
+          //v1 odd
+          //Whole Tracker
+          EPfinalwholeoddtracker=EPwholeoddtracker+AngularCorrectionWholeOddTracker;
+          if (EPfinalwholeoddtracker>(pi)) EPfinalwholeoddtracker=(EPfinalwholeoddtracker-(TMath::TwoPi()));
+          if (EPfinalwholeoddtracker<(-1.0*(pi))) EPfinalwholeoddtracker=(EPfinalwholeoddtracker+(TMath::TwoPi()));
+          PsiOddFinal[c]->Fill(EPfinalwholeoddtracker);
+
+          //Pos Tracker
+          EPfinalposoddtracker=EPposoddtracker+AngularCorrectionPosOddTracker;
+          if (EPfinalposoddtracker>(pi)) EPfinalposoddtracker=(EPfinalposoddtracker-(TMath::TwoPi()));
+          if (EPfinalposoddtracker<(-1.0*(pi))) EPfinalposoddtracker=(EPfinalposoddtracker+(TMath::TwoPi()));
+          PsiPOddFinal[c]->Fill(EPfinalposoddtracker);
+
+
+          //Neg Tracker
+          EPfinalnegoddtracker=EPnegoddtracker+AngularCorrectionNegOddTracker;
+          //if(c==2) std::cout<<EPfinalnegtracker<<std::endl;
+          if (EPfinalnegoddtracker>(pi)) EPfinalnegoddtracker=(EPfinalnegoddtracker-(TMath::TwoPi()));
+          if (EPfinalnegoddtracker<(-1.0*(pi))) EPfinalnegoddtracker=(EPfinalnegoddtracker+(TMath::TwoPi()));
+          PsiNOddFinal[c]->Fill(EPfinalnegoddtracker);
+
+
+          //Mid Tracker
+          EPfinalmidoddtracker=EPmidoddtracker+AngularCorrectionMidOddTracker;
+          if (EPfinalmidoddtracker>(pi)) EPfinalmidoddtracker=(EPfinalmidoddtracker-(TMath::TwoPi()));
+          if (EPfinalmidoddtracker<(-1.0*(pi))) EPfinalmidoddtracker=(EPfinalmidoddtracker+(TMath::TwoPi()));
+          PsiMOddFinal[c]->Fill(EPfinalmidoddtracker);
+
+
+          //Resolutions
+          //Even v1
+          TRPMinusTRM[c]->Fill(0,cos(EPfinalpostracker-EPfinalnegtracker));
+          TRMMinusTRC[c]->Fill(0,cos(EPfinalnegtracker-EPfinalmidtracker));
+          TRPMinusTRC[c]->Fill(0,cos(EPfinalpostracker-EPfinalmidtracker));
+          //Odd V1
+          TRPMinusTRMOdd[c]->Fill(0,cos(EPfinalposoddtracker-EPfinalnegoddtracker));
+          TRMMinusTRCOdd[c]->Fill(0,cos(EPfinalnegoddtracker-EPfinalmidoddtracker));
+          TRPMinusTRCOdd[c]->Fill(0,cos(EPfinalposoddtracker-EPfinalmidoddtracker));
+
+
+
+          //Loop again over tracks to find the flow
+          NumberOfHits= NumTracks->GetValue();
+          for (Int_t ii=0;ii<NumberOfHits;ii++)
+            {
+              pT=0.;
+              phi=0.;
+              eta=0.;
+              pT=TrackMom->GetValue(ii);
+              phi=TrackPhi->GetValue(ii);
+              eta=TrackEta->GetValue(ii);
+              if(pT<0)
+                {
+                  continue;
+                }
+              //              std::cout<<pT<<" "<<eta<<" "<<phi<<std::endl;
+              if(fabs(eta)<0.6 && pT>0.4)
+                {
+                  V1EtaOdd[c]->Fill(eta,cos(phi-EPfinalwholeoddtracker));
+                  if(pT<=3.5) V1EtaEven[c]->Fill(eta,cos(phi-EPfinalwholetracker));
+                  V1PtOdd[c]->Fill(pT,cos(phi-EPfinalwholeoddtracker));
+                  PTCenters[c]->Fill(pT,pT);
+                  V1PtEven[c]->Fill(pT,cos(phi-EPfinalwholetracker));
+                }
+            }//end of loop over tracks
+        }//End of loop over centralities
+    }//End of loop over events
+  myFile->Write();
+}//End of Flow Analysis Function
