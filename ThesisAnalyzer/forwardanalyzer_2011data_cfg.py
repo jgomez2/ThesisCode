@@ -35,6 +35,8 @@ from Configuration.AlCa.GlobalTag import GlobalTag
 process.GlobalTag = GlobalTag(process.GlobalTag, 'GR_R_53_LV6::All', '')
 
 
+from HeavyIonsAnalysis.Configuration.CommonFunctions_cff import *
+overrideCentrality(process)
 process.HeavyIonGlobalParameters = cms.PSet(
     centralityVariable = cms.string("HFtowers"),
     nonDefaultGlauberModel = cms.string(""),
@@ -42,12 +44,6 @@ process.HeavyIonGlobalParameters = cms.PSet(
     )
 
 
-##########################
-### MERGER ################
-##########################
-process.load("jgomez2/TrackMerging/HiMultipleTrackListMerger_cff")
-process.merge_step = cms.Path(process.hiGoodMergedTracks)
-#####################################################################
 
 process.fwdana = cms.EDAnalyzer('ForwardAnalyzer_2011')
 
@@ -56,7 +52,7 @@ process.upcvertexana = cms.EDAnalyzer('UPCVertexAnalyzer',
                                       )
 
 process.goodmergedtracks = cms.EDAnalyzer('UPCTrackAnalyzer',
-                                          trackCollection=cms.string("hiGoodMergedTracks")
+                                          trackCollection=cms.string("hiLowPtPixelTracks")
                                              )
 
 
