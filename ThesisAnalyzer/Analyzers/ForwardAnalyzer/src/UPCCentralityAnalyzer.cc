@@ -27,7 +27,7 @@ void UPCCentralityAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSe
 	
 	if (!CentProv) CentProv = new CentralityProvider(iSetup);
         CentProv->newEvent(iEvent,iSetup);
-        const reco::Centrality* centrality = CentProvider->raw();
+        const reco::Centrality* centrality = CentProv->raw();
 	
 	cent[0]=CentProv->NpartMean();
 	cent[1]=CentProv->centralityValue();
