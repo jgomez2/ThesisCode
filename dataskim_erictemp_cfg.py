@@ -60,7 +60,7 @@ process.noBSChalo = process.hltLevel1GTSeed.clone(
         L1SeedsLogicalExpression = cms.string('NOT (36 OR 37 OR 38 OR 39)')
         )
 
-process.filter_step = cms.Path(process.hltMinBiasHFOrBSC*process.hfCoincFilter3*process.siPixelRecHits*process.hltPixelClusterShapeFilter*process.noBSChalo*process.primaryVertexFilter*process.hiConformalPixelTracks)
+process.filter_step = cms.Path(process.hltMinBiasHFOrBSC*process.hfCoincFilter3*process.siPixelRecHits*process.hltPixelClusterShapeFilter*process.noBSChalo*process.primaryVertexFilter)
 
 #process.source = cms.Source("PoolSource",
  #                           fileNames = cms.untracked.vstring('/store/hidata/HIRun2011/HIMinBiasUPC/RECO/14Mar2014-v2/00000/0018A8E7-F9AF-E311-ADAB-FA163E565820.root')
