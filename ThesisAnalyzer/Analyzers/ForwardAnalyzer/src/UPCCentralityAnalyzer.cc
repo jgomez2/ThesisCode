@@ -1,21 +1,3 @@
-//////////////////////////////////////////////////////////////////////////
-///////////////////////completely ripped off from////////////////////////
-//   PPPPPPP            AAAAAAAAAAAA             TTTTTTTTTTTTTTTTTTTTTTTT  
-/// PP    PP            AAA      AAA             TTTTTTTTTTTTTTTTTTTTTTTT     
-// PP     PP            AAA      AAA                        TTT
-// PP    PPP            AAA      AAA                        TTT
-// PP   PPP             AAA      AAA                        TTT
-// PP  PPP              AAAAAAAAAAAA                        TTT
-// PP PPP               AAAAAAAAAAAA                        TTT
-// PPP                  AAA      AAA                        TTT
-// PP                   AAA      AAA                        TTT
-// PP                   AAA      AAA                        TTT
-// PP                   AAA      AAA                        TTT
-// PP                   AAA      AAA                        TTT
-// PP                   AAA      AAA                        TTT
-//
-// from University of Kansas.
-/////////////////////////////////////////////////////////////////////////
 #include "Analyzers/ForwardAnalyzer/interface/UPCCentralityAnalyzer.h"
 #include "DataFormats/HeavyIonEvent/interface/CentralityBins.h"
 #include "DataFormats/HeavyIonEvent/interface/Centrality.h"
@@ -42,6 +24,10 @@ void UPCCentralityAnalyzer::beginJob(){
 void UPCCentralityAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup){
 	CentProv = new CentralityProvider(iSetup);
 	CentProv->newEvent(iEvent,iSetup);
+	
+	if (!CentProv) CentProv = new CentralityProvider(iSetup);
+        CentProv->newEvent(iEvent,iSetup);
+        const reco::Centrality* centrality = CentProvider->raw();
 	
 	cent[0]=CentProv->NpartMean();
 	cent[1]=CentProv->centralityValue();
