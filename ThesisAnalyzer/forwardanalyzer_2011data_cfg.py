@@ -77,6 +77,5 @@ process.analyzer_step = cms.Path(process.upcvertexana
                                  )
 
 
-process.schedule = cms.Schedule(process.merge_step,
-                                process.analyzer_step)
+process.schedule = cms.Schedule(process.analyzer_step)
                                
