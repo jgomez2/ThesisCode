@@ -1,21 +1,4 @@
-//////////////////////////////////////////////////////////////////////////
-///////////////////////completely ripped off from////////////////////////
-//   PPPPPPP            AAAAAAAAAAAA             TTTTTTTTTTTTTTTTTTTTTTTT  
-/// PP    PP            AAA      AAA             TTTTTTTTTTTTTTTTTTTTTTTT     
-// PP     PP            AAA      AAA                        TTT
-// PP    PPP            AAA      AAA                        TTT
-// PP   PPP             AAA      AAA                        TTT
-// PP  PPP              AAAAAAAAAAAA                        TTT
-// PP PPP               AAAAAAAAAAAA                        TTT
-// PPP                  AAA      AAA                        TTT
-// PP                   AAA      AAA                        TTT
-// PP                   AAA      AAA                        TTT
-// PP                   AAA      AAA                        TTT
-// PP                   AAA      AAA                        TTT
-// PP                   AAA      AAA                        TTT
-//
-// from University of Kansas.
-/////////////////////////////////////////////////////////////////////////
+
 
 #ifndef UPCTRACKANALYZER_H
 #define UPCTRACKANALYZER_H
@@ -76,6 +59,7 @@ private:
 
 	double chi2_;
 	double dzerr_;
+	std::string qualitystring_;
 
 ///New Vertex And track quality cuts
 
