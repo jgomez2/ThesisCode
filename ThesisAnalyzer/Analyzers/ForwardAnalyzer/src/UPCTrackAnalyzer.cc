@@ -47,6 +47,7 @@ void UPCTrackAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
 
   chi2_=36.;
   dzerr_=10.;
+  qualitystring_="highPurity";
 
   if(!hiTrax.failedToGet()){getTracks(hiTrax,vertex,ndof,chi2,x,y,z,pt,qoverp,lambda,phi,varQoverp,varLambda,varPhi,
                                       covarQoverpLambda,covarQoverpPhi,covarLambdaPhi,eta,dzerr_,chi2_);}
