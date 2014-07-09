@@ -102,6 +102,9 @@ void UPCTrackAnalyzer::getTracks(Handle<TrackCollection> TrackCol,edm::Handle<re
     // determine if the track is a pixel track
     if ( trax->numberOfValidHits() < 7 ) isPixel = true;
 
+
+if(trax->quality(reco::TrackBase::qualityByName(qualityString_)) != 1) accepted = false;
+
     // determine the vertex significance
     double d0=0.0, dz=0.0, d0sigma=0.0, dzsigma=0.0;
     d0 = -1.*trax->dxy(vtxPoint);
