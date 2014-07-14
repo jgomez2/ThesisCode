@@ -87,11 +87,13 @@ process.analyzer_step = cms.Path(process.upcvertexana
 #process.forwardSequence = cms.Sequence(process.fwdana*process.castorana)
 #process.caloSequence = cms.Sequence(process.calotowerana)
 #process.centralitySequence = cms.Sequence(process.upccentralityana)
+process.tracks_step = cms.Path(process.goodmergedtracks
+                               *process.faketracks)
+
 
 #Schedule Definition
 process.schedule = cms.Schedule(process.analyzer_step,
-                                process.goodmergedtracks,
-                                process.faketracks)
+                                process.tracks_step)
 
 
 
