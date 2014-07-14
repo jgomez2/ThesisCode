@@ -50,13 +50,21 @@ process.upcvertexana = cms.EDAnalyzer('UPCVertexAnalyzer',
                                       vertexCollection=cms.string("hiSelectedVertex")
                                       )
 
-process.goodmergedtracks = cms.EDAnalyzer('UPCTrackAnalyzer',
-                                          trackCollection=cms.string("hiLowPtPixelTracks")
-                                             )
+#process.goodmergedtracks = cms.EDAnalyzer('UPCTrackAnalyzer',
+ #                                         trackCollection=cms.string("hiLowPtPixelTracks")
+  #                                           )
+##For hiLowPtPixelTracks  
+process.load("Analyzers/ForwardAnalyzer/trackanalyzer_cfi")
+process.goodmergedtracks=process.trackana.clone()
 
-process.faketracks = cms.EDAnalyzer('UPCTrackAnalyzer',
-                                     trackCollection=cms.string("jaimeTracks")
-                                     )
+
+  
+##FakeTrackAnalysis
+process.faketracks= process.trackana.clone()
+process.faketracks.trackCollection=cms.string("jaimeTracks")
+#process.faketracks = cms.EDAnalyzer('UPCTrackAnalyzer',
+ #                                    trackCollection=cms.string("jaimeTracks")
+  #                                   )
 
 process.calotowerana = cms.EDAnalyzer('CaloTowerAnalyzer',
                                       towerCollection=cms.string("CaloTower")
@@ -70,7 +78,7 @@ process.castorana = cms.EDAnalyzer('CastorAnalyzer')
 
 
 process.analyzer_step = cms.Path(process.upcvertexana
-                                 *process.goodmergedtracks
+                                 #*process.goodmergedtracks
                                  *process.faketracks
                                  *process.calotowerana
                                  *process.upccentralityana
@@ -81,7 +89,9 @@ process.analyzer_step = cms.Path(process.upcvertexana
 #process.centralitySequence = cms.Sequence(process.upccentralityana)
 
 #Schedule Definition
-process.schedule = cms.Schedule(process.analyzer_step)
+process.schedule = cms.Schedule(process.analyzer_step,
+                                process.goodmergedtracks,
+                                process.faketracks)
 
 
 
