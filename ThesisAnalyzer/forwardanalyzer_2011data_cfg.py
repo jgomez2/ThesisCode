@@ -15,14 +15,14 @@ process.load('Configuration.StandardSequences.GeometryRecoDB_cff')
 #process.load('Configuration.StandardSequences.SkimsHeavyIons_cff')
 process.load('Configuration/StandardSequences/MagneticField_AutoFromDBCurrent_cff')
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1) )
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 
 
 process.source = cms.Source("PoolSource",
 #                            fileNames = cms.untracked.vstring('file:/home/jgomez2/EAFE4330-EB64-E211-896F-BCAEC5329719.root')
-                            fileNames = cms.untracked.vstring('file:hiHighPt.root')
+                            fileNames = cms.untracked.vstring('file:/hadoop/store/user/jgomez2/DataSkims/2011MinBiasReReco/SmallSkim/HIMinBias2011_umdskim_197_1_IIm.root')
                             )
 
 process.TFileService = cms.Service("TFileService",
@@ -51,9 +51,15 @@ process.upcvertexana = cms.EDAnalyzer('UPCVertexAnalyzer',
                                       vertexCollection=cms.string("hiSelectedVertex")
                                       )
 
-process.goodmergedtracks = cms.EDAnalyzer('UPCTrackAnalyzer',
-                                          trackCollection=cms.string("hiLowPtPixelTracks")
-                                             )
+#process.goodmergedtracks = cms.EDAnalyzer('UPCTrackAnalyzer',
+ #                                         trackCollection=cms.string("hiLowPtPixelTracks")
+  #                                           )
+########################
+#Track Analyzer########
+#######################
+process.load("Analyzers/ForwardAnalyzer/trackanalyzer_cfi")
+process.goodmergedtracks=cms.Path(process.trackana)
+
 
 
 process.calotowerana = cms.EDAnalyzer('CaloTowerAnalyzer',
@@ -69,7 +75,7 @@ process.castorana = cms.EDAnalyzer('CastorAnalyzer')
 
 
 process.analyzer_step = cms.Path(process.upcvertexana
-                                 *process.goodmergedtracks
+                                 #process.goodmergedtracks
                                  *process.fwdana
                                  *process.castorana
                                  *process.calotowerana
@@ -77,5 +83,6 @@ process.analyzer_step = cms.Path(process.upcvertexana
                                  )
 
 
-process.schedule = cms.Schedule(process.analyzer_step)
+process.schedule = cms.Schedule(process.analyzer_step,
+                                process.goodmergedtracks)
                                

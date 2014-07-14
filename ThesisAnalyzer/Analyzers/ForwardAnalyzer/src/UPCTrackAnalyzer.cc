@@ -2,7 +2,12 @@
 
 using namespace edm;
 
-UPCTrackAnalyzer::UPCTrackAnalyzer(const edm::ParameterSet& iConfig):trackCollection(iConfig.getParameter<string>("trackCollection")){}
+UPCTrackAnalyzer::UPCTrackAnalyzer(const edm::ParameterSet& iConfig):
+  trackCollection(iConfig.getParameter<string>("trackCollection")),
+  dzErrMax_(iConfig.getParameter<double>("dzErrMax")),
+  chi2Max_(iConfig.getParameter<double>("chi2Max")),
+  qualityString_(iConfig.getParameter<std::string>("qualityString"))
+{}
 
 UPCTrackAnalyzer::~UPCTrackAnalyzer(){}
 
@@ -45,12 +50,9 @@ void UPCTrackAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& 
   varQoverp.clear(); varLambda.clear(); varPhi.clear();
   covarQoverpLambda.clear();covarQoverpPhi.clear();covarLambdaPhi.clear();eta.clear();
 
-  chi2_=36.;
-  dzerr_=10.;
-  qualitystring_="highPurity";
 
   if(!hiTrax.failedToGet()){getTracks(hiTrax,vertex,ndof,chi2,x,y,z,pt,qoverp,lambda,phi,varQoverp,varLambda,varPhi,
-                                      covarQoverpLambda,covarQoverpPhi,covarLambdaPhi,eta,dzerr_,chi2_);}
+                                      covarQoverpLambda,covarQoverpPhi,covarLambdaPhi,eta);}
 
   nTracks=x.size();
 
@@ -81,13 +83,13 @@ void UPCTrackAnalyzer::getTracks(Handle<TrackCollection> TrackCol,edm::Handle<re
                                  vector<double> &pt, vector<double> &qoverp, vector<double> &lambda, vector<double> &phi,
                                  vector<double> &varqoverp, vector<double> &varlambda, vector<double> &varphi,
                                  vector<double> &covarqoverplambda, vector<double> &covarqoverpphi,
-                                 vector<double> &covarlambdaphi, vector<double> &eta,double &dzerr_,double &chi2_){
+                                 vector<double> &covarlambdaphi, vector<double> &eta){
   for(TrackCollection::const_iterator trax=(&*TrackCol)->begin();
       trax!=(&*TrackCol)->end();trax++){
 
     // find the vertex point and error
 
-    math::XYZPoint vtxPoint(0.0,0.0,0.0);
+       math::XYZPoint vtxPoint(0.0,0.0,0.0);
     double vzErr =0.0, vxErr=0.0, vyErr=0.0;
     if(vertex->size()>0) {
       vtxPoint=vertex->begin()->position();
@@ -95,15 +97,12 @@ void UPCTrackAnalyzer::getTracks(Handle<TrackCollection> TrackCol,edm::Handle<re
       vxErr=vertex->begin()->xError();
       vyErr=vertex->begin()->yError();
     }
-
+    
     bool accepted = true;
-    bool isPixel = false;
+     bool isPixel = false;
 
     // determine if the track is a pixel track
     if ( trax->numberOfValidHits() < 7 ) isPixel = true;
-
-
-if(trax->quality(reco::TrackBase::qualityByName(qualityString_)) != 1) accepted = false;
 
     // determine the vertex significance
     double d0=0.0, dz=0.0, d0sigma=0.0, dzsigma=0.0;
@@ -111,18 +110,20 @@ if(trax->quality(reco::TrackBase::qualityByName(qualityString_)) != 1) accepted 
     dz = trax->dz(vtxPoint);
     d0sigma = sqrt(trax->d0Error()*trax->d0Error()+vxErr*vyErr);
     dzsigma = sqrt(trax->dzError()*trax->dzError()+vzErr*vzErr);
-
+    
+    if(trax->quality(reco::TrackBase::qualityByName(qualityString_)) != 1) accepted = false;
+    //  std::cout<<chi2_<<std::endl;
     // cuts for pixel tracks
-    if( isPixel )
+        if( isPixel )
       {
         // dz significance cut
-        if ( fabs(dz/dzsigma) > dzerr_ ) accepted = false;
+        if ( fabs(dz/dzsigma) > dzErrMax_ ) accepted = false;
 
         // chi2/ndof cut
-        if ( trax->normalizedChi2() > chi2_ ) accepted = false;
+        if ( trax->normalizedChi2() > chi2Max_ ) accepted = false;
       }
-
-    // cuts for full tracks
+    
+        // cuts for full tracks
     if ( ! isPixel)
       {
         // dz and d0 significance cuts
@@ -135,7 +136,7 @@ if(trax->quality(reco::TrackBase::qualityByName(qualityString_)) != 1) accepted 
         // number of valid hits cut
         //if ( trax->numberOfValidHits() < 12 ) accepted = false;
       }
-
+    
     if( accepted ){
       //cout<<"MADE IT"<<endl;
       x.push_back(trax->vx());

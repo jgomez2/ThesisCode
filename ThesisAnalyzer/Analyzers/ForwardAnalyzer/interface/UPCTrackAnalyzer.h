@@ -1,5 +1,4 @@
 
-
 #ifndef UPCTRACKANALYZER_H
 #define UPCTRACKANALYZER_H
 
@@ -42,7 +41,7 @@ private:
              vector<double>&, vector<double>&, vector<double>&, vector<double>&,
              vector<double>&, vector<double>&, vector<double>&, vector<double>&,
 	     vector<double>&, vector<double>&, vector<double>&, vector<double>&, 
-	     vector<double>&, double&, double&);
+	     vector<double>&);
 	
 	edm::Service<TFileService> mFileServer;
 
@@ -57,10 +56,9 @@ private:
 
 	TTree* TrakTree;
 
-	double chi2_;
-	double dzerr_;
-	std::string qualitystring_;
-
+	double chi2Max_;
+	double dzErrMax_;
+	std::string qualityString_;
 ///New Vertex And track quality cuts
 
 
