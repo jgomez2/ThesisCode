@@ -79,7 +79,7 @@ process.castorana = cms.EDAnalyzer('CastorAnalyzer')
 
 process.analyzer_step = cms.Path(process.upcvertexana
                                  #*process.goodmergedtracks
-                                 *process.faketracks
+                                 #*process.faketracks
                                  *process.calotowerana
                                  *process.upccentralityana
                                  )
