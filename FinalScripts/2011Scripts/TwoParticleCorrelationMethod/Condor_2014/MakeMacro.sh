@@ -16,7 +16,6 @@ cat > TwoParticleCorrelation_${1}.C << +EOF
 //Functions in this macro///
 void Initialize();
 void CorrelationAnalysis();
-void PlotFitting();
 ////////////////////////////
 
 
@@ -109,8 +108,7 @@ TProfile *PTCenters[nCent];
 Int_t TwoParticleCorrelation_${1}(){//put functions in here
   Initialize();
   CorrelationAnalysis();
-  PlotFitting();
-  //Analyze();
+  myFile->Write();
   return 0;
 }
 
@@ -226,7 +224,7 @@ void CorrelationAnalysis(){
             {
               continue;
             }
-          for (Int_t k=0;k<NumberOfHits;k++)
+          for (Int_t k=j+1;k<NumberOfHits;k++)
             {
               pTb=0.;
               phib=0.;
@@ -252,13 +250,6 @@ void CorrelationAnalysis(){
 }//end of Correlation Analysis function
 
 
-void PlotFitting(){
-  myFile->Write();
-}//End of Plot Fitting Function
-
-void Analyze(){
-  myFile->Write();
-}//end of analyze function
-                                                   
+                  
 
 +EOF
