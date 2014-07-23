@@ -67,7 +67,7 @@ TDirectory *myPlots;//the top level
 
 TDirectory *flowvectors;
 TDirectory *evenvectors;
-TDirectroy *oddvectors;
+TDirectory *oddvectors;
 
 
 //TProfiles to save <pT> and <pT^2> info ....All this is for Ollitrault weights
@@ -186,7 +186,7 @@ void Initialize(){
      //Make The odd vector plots next
      oddvectors->cd();
      //Whole Tracker
-     FlowVectorsWholeOddTracker = new TProfile2D("FlowVectorsOddWholeTracker","FlowVectorInformationWholeOddTracker",nCent,0,nCent,2,0,2,"s(j)");
+     FlowVectorsWholeOddTracker = new TProfile2D("FlowVectorsWholeOddTracker","FlowVectorInformationWholeOddTracker",nCent,0,nCent,2,0,2,"s(j)");
      FlowVectorsWholeOddTracker->GetXaxis()->SetBinLabel(1,"0-10%");
      FlowVectorsWholeOddTracker->GetXaxis()->SetBinLabel(2,"10-20%");
      FlowVectorsWholeOddTracker->GetXaxis()->SetBinLabel(3,"20-30%");
@@ -196,7 +196,7 @@ void Initialize(){
      FlowVectorsWholeOddTracker->GetYaxis()->SetBinLabel(2,"Y");
 
      //Pos Tracker
-     FlowVectorsPosOddTracker = new TProfile2D("FlowVectorsEvenPosOddTracker","FlowVectorInformationPosOddTracker",nCent,0,nCent,2,0,2,"s(j)");
+     FlowVectorsPosOddTracker = new TProfile2D("FlowVectorsPosOddTracker","FlowVectorInformationPosOddTracker",nCent,0,nCent,2,0,2,"s(j)");
      FlowVectorsPosOddTracker->GetXaxis()->SetBinLabel(1,"0-10%");
      FlowVectorsPosOddTracker->GetXaxis()->SetBinLabel(2,"10-20%");
      FlowVectorsPosOddTracker->GetXaxis()->SetBinLabel(3,"20-30%");
@@ -206,7 +206,7 @@ void Initialize(){
      FlowVectorsPosOddTracker->GetYaxis()->SetBinLabel(2,"Y");
 
      //Neg OddTracker
-     FlowVectorsNegOddTracker = new TProfile2D("FlowVectorsEvenNegOddTracker","FlowVectorInformationNegOddTracker",nCent,0,nCent,2,0,2,"s(j)");
+     FlowVectorsNegOddTracker = new TProfile2D("FlowVectorsNegOddTracker","FlowVectorInformationNegOddTracker",nCent,0,nCent,2,0,2,"s(j)");
      FlowVectorsNegOddTracker->GetXaxis()->SetBinLabel(1,"0-10%");
      FlowVectorsNegOddTracker->GetXaxis()->SetBinLabel(2,"10-20%");
      FlowVectorsNegOddTracker->GetXaxis()->SetBinLabel(3,"20-30%");
@@ -216,7 +216,7 @@ void Initialize(){
      FlowVectorsNegOddTracker->GetYaxis()->SetBinLabel(2,"Y");
 
      //Mid OddTracker
-     FlowVectorsMidOddTracker = new TProfile2D("FlowVectorsEvenMidOddTracker","FlowVectorInformationMidOddTracker",nCent,0,nCent,2,0,2,"s(j)");
+     FlowVectorsMidOddTracker = new TProfile2D("FlowVectorsMidOddTracker","FlowVectorInformationMidOddTracker",nCent,0,nCent,2,0,2,"s(j)");
      FlowVectorsMidOddTracker->GetXaxis()->SetBinLabel(1,"0-10%");
      FlowVectorsMidOddTracker->GetXaxis()->SetBinLabel(2,"10-20%");
      FlowVectorsMidOddTracker->GetXaxis()->SetBinLabel(3,"20-30%");
@@ -350,7 +350,7 @@ void FlowVectors(){
               FlowVectorsMidTracker->Fill(c+0.2,1.2,Y_midtracker[c]);
 
               //v1 odd
-              FlowVectorsWholeOddTracker->Fill(c+0.2,0.2,X_wholoddtracker[c]);
+              FlowVectorsWholeOddTracker->Fill(c+0.2,0.2,X_wholeoddtracker[c]);
               FlowVectorsWholeOddTracker->Fill(c+0.2,1.2,Y_wholeoddtracker[c]);
 
               FlowVectorsPosOddTracker->Fill(c+0.2,0.2,X_posoddtracker[c]);

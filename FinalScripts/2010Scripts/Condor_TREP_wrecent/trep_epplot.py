@@ -10,7 +10,7 @@ import os,sys,string
 
 # Set your base directory, containing all root files to be hadd'ed
 #basedir="/data/users/jgomez2/TwoParticleCorrelationFiles/"
-basedir ="/data/users/jgomez2/V1EPFiles/TREP/EPPlotting/"
+basedir ="/data/users/jgomez2/V1EPFiles/Recenter/EPPlotting/"
 # Set up start of hadd command, along with output file name
 #hadd="hadd TwoParticleCorrelation_1to100_corrected.root "
 hadd="hadd Final_TREP.root "

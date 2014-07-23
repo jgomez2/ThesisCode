@@ -15,7 +15,7 @@
 #Make the CFG File
 #FIX WORKING DIRECTORY
 cd /home/jgomez2/V1Analysis/EventPlane/January2014/Condor_TREP_wrecent
-./MakePTStats.sh ${1}
+./MakeFlowVectors.sh ${1}
 
 #setup the cmssw environment
 export SCRAM_ARCH=slc5_amd64_gcc434 ##this needs to be changed
@@ -32,15 +32,15 @@ cd condor_run_${1}
 
 #move the run file to the current directory
 #/bin/mv /home/jgomez2/Summer2012_ZDCSimulation/Condor_2012/PyConfig_${firstevent}.py .
-/bin/mv /home/jgomez2/V1Analysis/EventPlane/January2014/Condor_TREP_wrecent/TRV1PTStats_${1}.C .
+/bin/mv /home/jgomez2/V1Analysis/EventPlane/January2014/Condor_TREP_wrecent/TRV1FlowVectors_${1}.C .
 
 
 #execute
 #cmsRun PyConfig_${firstevent}.py >& ZDC_PG_N_1380GeV_1000events_${firstevent}.txt   
-root -l -b -q TRV1PTStats_${1}.C
+root -l -b -q TRV1FlowVectors_${1}.C
 
 #Move the important output files to the new directory
-cp TREP_PTStats_${1}.root /data/users/jgomez2/V1EPFiles/Recenter/PTStats/
+cp TREP_FlowVectors_${1}.root /data/users/jgomez2/V1EPFiles/Recenter/FlowVectors/
 
 #clean up after oneself
 cd ..

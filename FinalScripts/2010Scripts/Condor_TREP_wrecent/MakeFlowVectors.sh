@@ -67,7 +67,7 @@ TDirectory *myPlots;//the top level
 
 TDirectory *flowvectors;
 TDirectory *evenvectors;
-TDirectroy *oddvectors;
+TDirectory *oddvectors;
 
 
 //TProfiles to save <pT> and <pT^2> info ....All this is for Ollitrault weights
@@ -196,7 +196,7 @@ void Initialize(){
      FlowVectorsWholeOddTracker->GetYaxis()->SetBinLabel(2,"Y");
 
      //Pos Tracker
-     FlowVectorsPosOddTracker = new TProfile2D("FlowVectorsEvenPosOddTracker","FlowVectorInformationPosOddTracker",nCent,0,nCent,2,0,2,"s(j)");
+     FlowVectorsPosOddTracker = new TProfile2D("FlowVectorsPosOddTracker","FlowVectorInformationPosOddTracker",nCent,0,nCent,2,0,2,"s(j)");
      FlowVectorsPosOddTracker->GetXaxis()->SetBinLabel(1,"0-10%");
      FlowVectorsPosOddTracker->GetXaxis()->SetBinLabel(2,"10-20%");
      FlowVectorsPosOddTracker->GetXaxis()->SetBinLabel(3,"20-30%");
@@ -206,7 +206,7 @@ void Initialize(){
      FlowVectorsPosOddTracker->GetYaxis()->SetBinLabel(2,"Y");
 
      //Neg OddTracker
-     FlowVectorsNegOddTracker = new TProfile2D("FlowVectorsEvenNegOddTracker","FlowVectorInformationNegOddTracker",nCent,0,nCent,2,0,2,"s(j)");
+     FlowVectorsNegOddTracker = new TProfile2D("FlowVectorsNegOddTracker","FlowVectorInformationNegOddTracker",nCent,0,nCent,2,0,2,"s(j)");
      FlowVectorsNegOddTracker->GetXaxis()->SetBinLabel(1,"0-10%");
      FlowVectorsNegOddTracker->GetXaxis()->SetBinLabel(2,"10-20%");
      FlowVectorsNegOddTracker->GetXaxis()->SetBinLabel(3,"20-30%");
@@ -216,7 +216,7 @@ void Initialize(){
      FlowVectorsNegOddTracker->GetYaxis()->SetBinLabel(2,"Y");
 
      //Mid OddTracker
-     FlowVectorsMidOddTracker = new TProfile2D("FlowVectorsEvenMidOddTracker","FlowVectorInformationMidOddTracker",nCent,0,nCent,2,0,2,"s(j)");
+     FlowVectorsMidOddTracker = new TProfile2D("FlowVectorsMidOddTracker","FlowVectorInformationMidOddTracker",nCent,0,nCent,2,0,2,"s(j)");
      FlowVectorsMidOddTracker->GetXaxis()->SetBinLabel(1,"0-10%");
      FlowVectorsMidOddTracker->GetXaxis()->SetBinLabel(2,"10-20%");
      FlowVectorsMidOddTracker->GetXaxis()->SetBinLabel(3,"20-30%");
@@ -350,7 +350,7 @@ void FlowVectors(){
               FlowVectorsMidTracker->Fill(c+0.2,1.2,Y_midtracker[c]);
 
               //v1 odd
-              FlowVectorsWholeOddTracker->Fill(c+0.2,0.2,X_wholoddtracker[c]);
+              FlowVectorsWholeOddTracker->Fill(c+0.2,0.2,X_wholeoddtracker[c]);
               FlowVectorsWholeOddTracker->Fill(c+0.2,1.2,Y_wholeoddtracker[c]);
 
               FlowVectorsPosOddTracker->Fill(c+0.2,0.2,X_posoddtracker[c]);
@@ -370,56 +370,59 @@ void FlowVectors(){
 
 void FillPTStats(){
 //Whole Tracker
-ptavwhole[0]=0.941351;
-ptavwhole[1]=0.951032;
-ptavwhole[2]=0.95263;
-ptavwhole[3]=0.947478;
-ptavwhole[4]=0.937569;
+ptavwhole[0]=0.941464;
+ptavwhole[1]=0.95117;
+ptavwhole[2]=0.952798;
+ptavwhole[3]=0.947588;
+ptavwhole[4]=0.937624;
  
-pt2avwhole[0]=1.19736;
-pt2avwhole[1]=1.22518;
-pt2avwhole[2]=1.23526;
-pt2avwhole[3]=1.23014;
-pt2avwhole[4]=1.21337;
+pt2avwhole[0]=1.19755;
+pt2avwhole[1]=1.22546;
+pt2avwhole[2]=1.23552;
+pt2avwhole[3]=1.23042;
+pt2avwhole[4]=1.21347;
  
 //Positive Tracker
-ptavpos[0]=0.948274;
-ptavpos[1]=0.958461;
-ptavpos[2]=0.960167;
-ptavpos[3]=0.954984;
-ptavpos[4]=0.944996;
+ptavpos[0]=0.94767;
+ptavpos[1]=0.957841;
+ptavpos[2]=0.95949;
+ptavpos[3]=0.954261;
+ptavpos[4]=0.944176;
  
-pt2avpos[0]=1.21445;
-pt2avpos[1]=1.24371;
-pt2avpos[2]=1.25415;
-pt2avpos[3]=1.24917;
-pt2avpos[4]=1.23214;
+pt2avpos[0]=1.21299;
+pt2avpos[1]=1.24224;
+pt2avpos[2]=1.25235;
+pt2avpos[3]=1.24749;
+pt2avpos[4]=1.23002;
  
 //Negative Tracker
-ptavneg[0]=0.934988;
-ptavneg[1]=0.944227;
-ptavneg[2]=0.945735;
-ptavneg[3]=0.940621;
-ptavneg[4]=0.930783;
+ptavneg[0]=0.9357;
+ptavneg[1]=0.944994;
+ptavneg[2]=0.946605;
+ptavneg[3]=0.941421;
+ptavneg[4]=0.93157;
  
-pt2avneg[0]=1.18166;
-pt2avneg[1]=1.20821;
-pt2avneg[2]=1.21797;
-pt2avneg[3]=1.21275;
-pt2avneg[4]=1.19621;
+pt2avneg[0]=1.18322;
+pt2avneg[1]=1.20991;
+pt2avneg[2]=1.21995;
+pt2avneg[3]=1.21465;
+pt2avneg[4]=1.19817;
  
 //Mid Tracker
-ptavmid[0]=0.777191;
-ptavmid[1]=0.781748;
-ptavmid[2]=0.780175;
-ptavmid[3]=0.773304;
-ptavmid[4]=0.762743;
+ptavmid[0]=0.777141;
+ptavmid[1]=0.781723;
+ptavmid[2]=0.78016;
+ptavmid[3]=0.773262;
+ptavmid[4]=0.76271;
  
-pt2avmid[0]=0.866207;
-pt2avmid[1]=0.881687;
-pt2avmid[2]=0.883832;
-pt2avmid[3]=0.874966;
-pt2avmid[4]=0.857524;
+pt2avmid[0]=0.866104;
+pt2avmid[1]=0.881623;
+pt2avmid[2]=0.883752;
+pt2avmid[3]=0.874852;
+pt2avmid[4]=0.857406;
+ 
+
+
 
 
 }//End of fillptstats function

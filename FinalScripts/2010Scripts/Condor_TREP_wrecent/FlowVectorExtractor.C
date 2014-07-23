@@ -1,7 +1,9 @@
 {
 
-  TFile f("PTStats_TREP.root");
+  TFile f("FlowVectors_TREP.root");
+  //TFile f("TREP_FlowVectors_1.root");
   Plots.cd();
+  FlowVectorInformation.cd();
   EvenFlowVectors.cd();
 
   ofstream myout;
@@ -10,10 +12,10 @@
   //Whole Even Tracker First
   for(Int_t i=1;i<=5;i++)
     {
-      myout<<"Xav_wholetracker["<<i-1<<"]="<<FlowVectorsWholeTracker->GetBinContent(i,1)<<";"<<endl;
-      myout<<"Xstdev_wholetracker["<<i-1<<"]="<<FlowVectorsWholeTracker->GetBinError(i,1)<<";"<<endl;
-      myout<<"Yav_wholetracker["<<i-1<<"]="<<FlowVectorsWholeTracker->GetBinContent(i,2)<<";"<<endl;
-      myout<<"Ystdev_wholetracker["<<i-1<<"]="<<FlowVectorsWholeTracker->GetBinError(i,2)<<";"<<endl;
+      myout<<"Xav_wholetracker["<<i-1<<"]="<<FlowVectorsEvenWholeTracker->GetBinContent(i,1)<<";"<<endl;
+      myout<<"Xstdev_wholetracker["<<i-1<<"]="<<FlowVectorsEvenWholeTracker->GetBinError(i,1)<<";"<<endl;
+      myout<<"Yav_wholetracker["<<i-1<<"]="<<FlowVectorsEvenWholeTracker->GetBinContent(i,2)<<";"<<endl;
+      myout<<"Ystdev_wholetracker["<<i-1<<"]="<<FlowVectorsEvenWholeTracker->GetBinError(i,2)<<";"<<endl;
     }//end of first loop over centralities
 
   myout<<" "<<endl;
@@ -21,10 +23,10 @@
   //Pos Tracker
   for(Int_t i=1;i<=5;i++)
     {
-      myout<<"Xav_postracker["<<i-1<<"]="<<FlowVectorsPosTracker->GetBinContent(i,1)<<";"<<endl;
-      myout<<"Xstdev_postracker["<<i-1<<"]="<<FlowVectorsPosTracker->GetBinError(i,1)<<";"<<endl;
-      myout<<"Yav_postracker["<<i-1<<"]="<<FlowVectorsPosTracker->GetBinContent(i,2)<<";"<<endl;
-      myout<<"Ystdev_postracker["<<i-1<<"]="<<FlowVectorsPosTracker->GetBinError(i,2)<<";"<<endl;
+      myout<<"Xav_postracker["<<i-1<<"]="<<FlowVectorsEvenPosTracker->GetBinContent(i,1)<<";"<<endl;
+      myout<<"Xstdev_postracker["<<i-1<<"]="<<FlowVectorsEvenPosTracker->GetBinError(i,1)<<";"<<endl;
+      myout<<"Yav_postracker["<<i-1<<"]="<<FlowVectorsEvenPosTracker->GetBinContent(i,2)<<";"<<endl;
+      myout<<"Ystdev_postracker["<<i-1<<"]="<<FlowVectorsEvenPosTracker->GetBinError(i,2)<<";"<<endl;
     }//end of first loop over centralities  
 
   myout<<" "<<endl;
@@ -32,10 +34,10 @@
   //Neg Tracker 
   for(Int_t i=1;i<=5;i++)
     {
-      myout<<"Xav_negtracker["<<i-1<<"]="<<FlowVectorsNegTracker->GetBinContent(i,1)<<";"<<endl;
-      myout<<"Xstdev_negtracker["<<i-1<<"]="<<FlowVectorsNegTracker->GetBinError(i,1)<<";"<<endl;
-      myout<<"Yav_negtracker["<<i-1<<"]="<<FlowVectorsNegTracker->GetBinContent(i,2)<<";"<<endl;
-      myout<<"Ystdev_negtracker["<<i-1<<"]="<<FlowVectorsNegTracker->GetBinError(i,2)<<";"<<endl;
+      myout<<"Xav_negtracker["<<i-1<<"]="<<FlowVectorsEvenNegTracker->GetBinContent(i,1)<<";"<<endl;
+      myout<<"Xstdev_negtracker["<<i-1<<"]="<<FlowVectorsEvenNegTracker->GetBinError(i,1)<<";"<<endl;
+      myout<<"Yav_negtracker["<<i-1<<"]="<<FlowVectorsEvenNegTracker->GetBinContent(i,2)<<";"<<endl;
+      myout<<"Ystdev_negtracker["<<i-1<<"]="<<FlowVectorsEvenNegTracker->GetBinError(i,2)<<";"<<endl;
     }//end of first loop over centralities
 
   myout<<" "<<endl;
@@ -43,10 +45,10 @@
   //Mid Tracker
   for(Int_t i=1;i<=5;i++)
     {
-      myout<<"Xav_midtracker["<<i-1<<"]="<<FlowVectorsMidTracker->GetBinContent(i,1)<<";"<<endl;
-      myout<<"Xstdev_midtracker["<<i-1<<"]="<<FlowVectorsMidTracker->GetBinError(i,1)<<";"<<endl;
-      myout<<"Yav_midtracker["<<i-1<<"]="<<FlowVectorsMidTracker->GetBinContent(i,2)<<";"<<endl;
-      myout<<"Ystdev_midtracker["<<i-1<<"]="<<FlowVectorsMidTracker->GetBinError(i,2)<<";"<<endl;
+      myout<<"Xav_midtracker["<<i-1<<"]="<<FlowVectorsEvenMidTracker->GetBinContent(i,1)<<";"<<endl;
+      myout<<"Xstdev_midtracker["<<i-1<<"]="<<FlowVectorsEvenMidTracker->GetBinError(i,1)<<";"<<endl;
+      myout<<"Yav_midtracker["<<i-1<<"]="<<FlowVectorsEvenMidTracker->GetBinContent(i,2)<<";"<<endl;
+      myout<<"Ystdev_midtracker["<<i-1<<"]="<<FlowVectorsEvenMidTracker->GetBinError(i,2)<<";"<<endl;
     }//end of first loop over centralities  
 
   myout<<" "<<endl;
@@ -56,6 +58,7 @@
 
   f.cd();
   Plots.cd();
+  FlowVectorInformation.cd();
   OddFlowVectors.cd();
 
   //Whole Odd Tracker 

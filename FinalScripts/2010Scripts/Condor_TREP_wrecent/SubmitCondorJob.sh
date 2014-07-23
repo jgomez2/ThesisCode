@@ -12,8 +12,8 @@ echo " submitting: macro " ${1} " into the condor queue executing " submit_cmssw
 
 
 
-dir="/home/jgomez2/V1Analysis/EventPlane/January2014/Condor_TREP"
-ldir="/home/jgomez2/V1Analysis/EventPlane/January2014/Condor_TREP"
+dir="/home/jgomez2/V1Analysis/EventPlane/January2014/Condor_TREP_wrecent"
+ldir="/home/jgomez2/V1Analysis/EventPlane/January2014/Condor_TREP_wrecent"
 
 
 cat >  JobCondor_${1} << +EOF
@@ -22,7 +22,7 @@ cat >  JobCondor_${1} << +EOF
 
 universe     = vanilla
 #Executable   = RunPTStats.sh
-#Executable = RunFlowVectors.sh
+#Executable = RunFlowVector.sh
 #Executable   = RunAngularCorrections.sh
 Executable = RunEPPlotting.sh
 should_transfer_files = NO

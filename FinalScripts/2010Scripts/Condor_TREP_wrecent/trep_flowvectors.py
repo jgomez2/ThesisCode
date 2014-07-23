@@ -10,10 +10,10 @@ import os,sys,string
 
 # Set your base directory, containing all root files to be hadd'ed
 #basedir="/data/users/jgomez2/TwoParticleCorrelationFiles/"
-basedir ="/data/users/jgomez2/V1EPFiles/Recenter/PTStats/"
+basedir ="/data/users/jgomez2/V1EPFiles/Recenter/FlowVectors/"
 # Set up start of hadd command, along with output file name
 #hadd="hadd TwoParticleCorrelation_1to100_corrected.root "
-hadd="hadd PTStats_TREP.root "
+hadd="hadd FlowVectors_TREP.root "
 
 # Loop through all files in base directory
 for f in os.listdir(basedir):
