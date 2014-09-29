@@ -60,17 +60,23 @@ process.noBSChalo = process.hltLevel1GTSeed.clone(
         L1SeedsLogicalExpression = cms.string('NOT (36 OR 37 OR 38 OR 39)')
         )
 
-process.filter_step = cms.Path(process.hltMinBiasHFOrBSC*process.hfCoincFilter3*process.siPixelRecHits*process.hltPixelClusterShapeFilter*process.noBSChalo*process.primaryVertexFilter*process.hiConformalPixelTracks)
+process.filter_step = cms.Path(process.hltMinBiasHFOrBSC*process.hfCoincFilter3*process.siPixelRecHits*process.hltPixelClusterShapeFilter*process.noBSChalo*process.primaryVertexFilter)
+
+#process.source = cms.Source("PoolSource",
+ #                           fileNames = cms.untracked.vstring('/store/hidata/HIRun2011/HIMinBiasUPC/RECO/14Mar2014-v2/00000/0018A8E7-F9AF-E311-ADAB-FA163E565820.root')
+  #                          )
 
 process.source = cms.Source("PoolSource",
-                            fileNames = cms.untracked.vstring('/store/hidata/HIRun2011/HIMinBiasUPC/RECO/14Mar2014-v2/00000/0018A8E7-F9AF-E311-ADAB-FA163E565820.root')
+    fileNames = cms.untracked.vstring('/store/user/appelte1/HIMinBiasUPC/pixelTrackReco_2011PbPbMinBiasAndUCC_v1/8419974ae222f75edc8619f56eef1e4d/pixeltrackreco_1000_1_75l.root'),
+    secondaryFileNames = cms.untracked.vstring('/store/hidata/HIRun2011/HIMinBiasUPC/RECO/14Mar2014-v2/00030/82E016E7-0FB4-E311-B99F-FA163EAE1C9E.root')
                             )
+
 
 
 process.output = cms.OutputModule("PoolOutputModule",
                                   outputCommands = process.RECOEventContent.outputCommands,
                                   #outputCommands={ look up keep/drop
-                                  fileName = cms.untracked.string('jaimeskim.root'),
+                                  fileName = cms.untracked.string('HIMinBias2011_umdskim.root'),
                                   SelectEvents = cms.untracked.PSet(SelectEvents = cms.vstring('filter_step')),
                                   dataset = cms.untracked.PSet(
     dataTier = cms.untracked.string('RECO'))
@@ -82,15 +88,18 @@ process.output = cms.OutputModule("PoolOutputModule",
 process.output.outputCommands = ['drop *_*_*_*']
 
 ##Keeping tracks and pixel tracks
-process.output.outputCommands += ['keep *_hiGeneralTracks_*_*']
-process.output.outputCommands += ['keep *_hiConformalPixelTracks_*_*']
-
+#process.output.outputCommands += ['keep *_hiGeneralTracks_*_*']
+#process.output.outputCommands += ['keep *_hiConformalPixelTracks_*_*']
+#process.output.outputCommands +=['keep *_hiLowPtPixelTracks_*_*']
+process.output.outputCommands +=['keep *_hiGeneralAndPixelTracks_*_*']
 ##Keep Vertex Info
 process.output.outputCommands += ['keep *_hiSelectedVertex_*_*']
 ##Keep CaloTowers
 process.output.outputCommands += ['keep *_towerMaker_*_*']
 ##Keep ZDC Digis
 process.output.outputCommands += ['keep ZDCDataFramesSorted_hcalDigis_*_*']
+##Keep ZDC RecHits
+#process.output.outputCommands += ['keep ZDCRecHitsSorted_zdcreco_*_*']
 ##Keep Castor RecHits
 process.output.outputCommands += ['keep *_castorreco_*_*']
 ##Keep Centrality
