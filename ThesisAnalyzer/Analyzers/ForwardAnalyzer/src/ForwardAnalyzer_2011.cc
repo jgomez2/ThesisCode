@@ -1,23 +1,4 @@
-// -*- C++ -*-
-//
-// Package:    ForwardAnalyzer
-// Class:      ForwardAnalyzer
-//
-/**\class ForwardAnalyzer ForwardAnalyzer.cc Analyzers/ForwardAnalyzer/src/ForwardAnalyzer.cc
 
-Description: A simple analyzer which can read in Reco or RAW data and makes trees with Reco information and Digi information as well for all of the forward detectors.
-
-90% of this was shamelessly stolen from Pat Kenny's (Kansas) Analyzer
-
-Implementation:
-This can be run out of the box with the test cfg or can be installed into a crab.cfg
-*/
-//
-// Original Author: Jaime Arturo Gomez (University of Maryland)
-//         Created:  Wed Jan  9 14:43:26 EST 2013
-// $Id: ForwardAnalyzer.cc,v 1.14 2013/04/09 19:48:01 jgomez2 Exp $
-//
-//
 #include "Analyzers/ForwardAnalyzer/interface/ForwardAnalyzer_2011.h"
 #include "DataFormats/HeavyIonEvent/interface/CentralityBins.h"
 #include "DataFormats/HeavyIonEvent/interface/Centrality.h"
@@ -82,11 +63,12 @@ void ForwardAnalyzer_2011::analyze(const Event& iEvent, const EventSetup& iSetup
 
   Handle<ZDCDigiCollection> zdc_digi_h;
   ESHandle<HcalDbService> conditions;
+  Handle<ZDCRecHitCollection> zdc_recHits_h;
   iEvent.getByType(zdc_digi_h);
-
+  iEvent.getByType(zdc_recHits_h);
 
   const ZDCDigiCollection *zdc_digi = zdc_digi_h.failedToGet()? 0 : &*zdc_digi_h;
-
+  const ZDCRecHitCollection *zdc_recHits = zdc_recHits_h.failedToGet()? 0 : &*zdc_recHits_h;
   iSetup.get<HcalDbRecord>().get(conditions);
 
   if(zdc_digi){
@@ -114,7 +96,26 @@ void ForwardAnalyzer_2011::analyze(const Event& iEvent, const EventSetup& iSetup
     }
 
     ZDCDigiTree->Fill();
-  }
+  }///end of if zdc digis
+
+
+  if(zdc_recHits){
+
+    for(int i=0; i<36; i++){RecData[i]=0.; }
+    
+    for (ZDCRecHitCollection::const_iterator zhit=zdc_recHits->begin();zhit!=zdc_recHits->end();zhit++){
+      int iSide      = (zhit->id()).zside();
+      int iSection   = (zhit->id()).section();
+      int iChannel   = (zhit->id()).channel();
+      int chid = (iSection-1)*5+(iSide+1)/2*9+(iChannel-1);
+
+      RecData[chid]=zhit->energy();
+      // RecDataLowGain[chid]=zhit->lowGainEnergy();
+      RecData[chid+18]=zhit->time();
+    }
+
+    ZDCRecoTree->Fill();
+  }//end of if zdc rec hits
 
 }//end of Analyze
 
@@ -129,12 +130,15 @@ void ForwardAnalyzer_2011::beginJob(){
                      "posHD1","posHD2","posHD3","posHD4"};
   BranchNames=bnames;
   ZDCDigiTree = new TTree("ZDCDigiTree","ZDC Digi Tree");
-
+  ZDCRecoTree = new TTree("ZDCRecoTree","ZDC Rec Hit Tree");
   BeamTree = new TTree("BeamTree","Beam Tree");
 
   for(int i=0; i<18; i++){
     ZDCDigiTree->Branch((bnames[i]+"fC").c_str(),&DigiDatafC[i*10],(bnames[i]+"cFtsz[10]/F").c_str());
     ZDCDigiTree->Branch((bnames[i]+"ADC").c_str(),&DigiDataADC[i*10],(bnames[i]+"ADCtsz[10]/I").c_str());
+    ZDCRecoTree->Branch((bnames[i]+"energy").c_str(),&RecData[i],(bnames[i]+"energy/F").c_str());
+    //ZDCRecoTree->Branch((bnames[i]+"lowGainEnergy").c_str(),&RecDataLowGain[i],(bnames[i]+"lowGainEnergy/F").c_str());
+    ZDCRecoTree->Branch((bnames[i]+"timing").c_str(),&RecData[i+18],(bnames[i]+"timing/F").c_str());
   }
 
 
