@@ -63,12 +63,13 @@ private:
         int DigiDataADC[180];
         float DigiDatafC[180];
 	int BeamData[6];
-	
 	int Runno;
+	float RecData[36];
 	edm::Service<TFileService> mFileServer;
 	
 	TTree* ZDCDigiTree;
 	TTree* BeamTree;
+	TTree* ZDCRecoTree;
 	
    
 };
