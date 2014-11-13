@@ -101,20 +101,20 @@ void Initialize(){
   Double_t pt_bin[17]={0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.4,2.8,3.2,3.6,4.5,6.5,9.5,12};
 
 
-  chain= new TChain("hiLowPtPixelTracksTree");
+  chain= new TChain("hiGeneralAndPixelTracksTree");
   chain2=new TChain("CaloTowerTree");
   chain3=new TChain("hiSelectedVertexTree");
   chain4=new TChain("HFtowersCentralityTree");
 
   
   //Tracks Tree
-  chain->Add("/hadoop/store/user/jgomez2/ForwardTrees/2011/$b");
+  chain->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
   //Calo Tree
-  chain2->Add("/hadoop/store/user/jgomez2/ForwardTrees/2011/$b");
+  chain2->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
    //Vertex Tree
-  chain3->Add("/hadoop/store/user/jgomez2/ForwardTrees/2011/$b");
+  chain3->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
   //Centrality Tree
-  chain4->Add("/hadoop/store/user/jgomez2/ForwardTrees/2011/$b");
+  chain4->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
 
   NumberOfEvents = chain2->GetEntries();
   //Create the output ROOT file
