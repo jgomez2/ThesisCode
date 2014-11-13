@@ -93,7 +93,8 @@ TDirectory *v1ptevenplots; //v1(pT)[even] plots
 TDirectory *v1ptoddplots;//v1(pT)[odd] plots
 ////////////////////////////////
 
-
+TComplex Veven;
+TComplex Vodd;
 
 
 //Looping Variables
@@ -976,15 +977,25 @@ Q_TREven=TComplex(0.);
                 }
               if(fabs(eta)<=1.6 && pT>0.4)
                 {
+                 Veven=TComplex(0.);
+                 Veven=TComplex::Exp(TComplex::I()*(phi-EPfinalhfeven));
+                 Double_t v1even= Veven.Re();
+                 Vodd=TComplex(0.);
+                 Vodd=TComplex::Exp(TComplex::I()*(phi-EPfinalhfodd));
+                 Double_t v1odd = Vodd.Re();
                   V1EvenHFP[c]->Fill(eta,TMath::Cos(phi-EP_finalposeven));
                   V1EvenHFM[c]->Fill(eta,TMath::Cos(phi-EP_finalnegeven));
                   V1OddHFM[c]->Fill(eta,TMath::Cos(phi-EP_finalnegodd));
                   V1OddHFP[c]->Fill(eta,TMath::Cos(phi-EP_finalposodd));
                   V1EtaOdd[c]->Fill(eta,TMath::Cos(phi-EPfinalhfodd));
+                  //V1EtaOdd[c]->Fill(eta,v1odd);
                   V1EtaEven[c]->Fill(eta,TMath::Cos(phi-EPfinalhfeven));
+                  //V1EtaEven[c]->Fill(eta,v1even);
                   V1PtEven[c]->Fill(pT,TMath::Cos(phi-EPfinalhfeven));
+                  //V1PtEven[c]->Fill(pT,v1even);
                   PTCenters[c]->Fill(pT,pT);
                   V1PtOdd[c]->Fill(pT,TMath::Cos(phi-EPfinalhfodd));//can find offset later with removing the eta gate here
+                  //V1PtOdd[c]->Fill(pT,v1odd);
                 }//only central tracks
             }//end of loop over tracks
 
