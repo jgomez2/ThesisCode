@@ -462,7 +462,7 @@ void AngularCorrections(){
       //Filter On Centrality
       CENTRAL= (TLeaf*) chain4->GetLeaf("Bin");
       Centrality= CENTRAL->GetValue();
-      if (Centrality>19) continue;
+      if (Centrality>100) continue;
 
       //Make Vertex Cuts if Necessary
       Vertex=(TLeaf*) chain3->GetLeaf("z");
@@ -532,8 +532,8 @@ Q_TREven=TComplex(0.);
           if(pT<0 || fabs(eta)>0.8) continue; //prevent negative pt tracks and non central tracks
 	  for (Int_t c=0;c<nCent;c++)
             {
-              if ( (Centrality*2.5) > centhi[c] ) continue;
-              if ( (Centrality*2.5) < centlo[c] ) continue;
+              if ( (Centrality*0.5) > centhi[c] ) continue;
+              if ( (Centrality*0.5) < centlo[c] ) continue;
 	      
 	      if(eta>0.0)
 		{
@@ -616,8 +616,8 @@ Q_TREven=TComplex(0.);
 
       for (Int_t c=0;c<nCent;c++)
         {
-          if ( (Centrality*2.5) > centhi[c] ) continue;
-          if ( (Centrality*2.5) < centlo[c] ) continue;
+          if ( (Centrality*0.5) > centhi[c] ) continue;
+          if ( (Centrality*0.5) < centlo[c] ) continue;
           //Time to fill the appropriate histograms, this will be <cos> <sin>
 
           //V1 Even
