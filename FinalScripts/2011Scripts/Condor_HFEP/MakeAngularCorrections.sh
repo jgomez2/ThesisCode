@@ -549,7 +549,7 @@ Q_TREven=TComplex(0.);
 	      else
 		{
 		  //Odd   
-		  Q_TROdd+=(-1.0(pT-(pt2avmid[c]/ptavmid[c])))*TComplex::Exp(TComplex::I()*phi);
+		  Q_TROdd+=(-1.0*(pT-(pt2avmid[c]/ptavmid[c])))*TComplex::Exp(TComplex::I()*phi);
                   X_trodd+=TMath::Cos(phi)*(-1.0*(pT-(pt2avmid[c]/ptavmid[c])));
                   Y_trodd+=TMath::Sin(phi)*(-1.0*(pT-(pt2avmid[c]/ptavmid[c])));
                   //Even
