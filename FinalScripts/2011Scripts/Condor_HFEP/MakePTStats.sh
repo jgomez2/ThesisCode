@@ -161,7 +161,7 @@ void PTStats(){
       //Filter On Centrality
       CENTRAL= (TLeaf*) chain4->GetLeaf("Bin");
       Centrality= CENTRAL->GetValue();
-      if (Centrality>19) continue;
+      if (Centrality>100) continue;
 
       //Make Vertex Cuts if Necessary
       Vertex=(TLeaf*) chain3->GetLeaf("z");
@@ -190,8 +190,8 @@ void PTStats(){
             }
 	  for (Int_t c=0;c<nCent;c++)
             {
-	      if ( (Centrality*2.5) > centhi[c] ) continue;
-              if ( (Centrality*2.5) < centlo[c] ) continue;
+	      if ( (Centrality*0.5) > centhi[c] ) continue;
+              if ( (Centrality*0.5) < centlo[c] ) continue;
 	      PtStatsMid[c]->Fill(0,pT);
 	      PtStatsMid[c]->Fill(1,pT*pT);
 	    }//end of loop over centralityies
