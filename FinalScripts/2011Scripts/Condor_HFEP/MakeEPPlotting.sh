@@ -43,6 +43,7 @@ Int_t NumberOfEvents=0;
 //NumberOfEvents=1;
 //NumberOfEvents=2;
 //NumberOfEvents=10;
+//NumberOfEvents=1000;
 //NumberOfEvents=10000;
 Int_t Centrality=0;
 Float_t Zposition=0.;
@@ -254,7 +255,7 @@ void Initialize(){
   Double_t pt_bin[17]={0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.4,2.8,3.2,3.6,4.5,6.5,9.5,12};
 
 
-/Zero the complex numbers
+//Zero the complex numbers
 Q_HFOdd=TComplex(0.);
 Q_HFEven=TComplex(0.);
 Q_PosHFEven=TComplex(0.);
