@@ -5,6 +5,7 @@ b=$(sed -ne "${1}{p;q;}" files.txt)
 
 cat > HFV1EPPlotting_${1}.C << +EOF
 
+
 #include<TH1F>
 #include<TProfile>
 #include<iostream>
@@ -43,7 +44,6 @@ Int_t NumberOfEvents=0;
 //NumberOfEvents=1;
 //NumberOfEvents=2;
 //NumberOfEvents=10;
-//NumberOfEvents=1000;
 //NumberOfEvents=10000;
 Int_t Centrality=0;
 Float_t Zposition=0.;
@@ -110,43 +110,49 @@ TComplex Q_HFOdd;
 ///Looping Variables
 //v1 even
 Float_t EPhfeven=0.;
+TComplex QEP_hfeven[jMax];
 Float_t AngularCorrectionHFEven=0.,EPfinalhfeven=0.;
 
 //v1 odd
 Float_t EPhfodd=0.;
+TComplex QEP_hfodd[jMax];
 Float_t AngularCorrectionHFOdd=0.,EPfinalhfodd=0.;
 
 //PosHFEven
-Float_t X_poseven=0.,Y_poseven=0.;
 Float_t EP_poseven=0.,EP_finalposeven=0.;
 Float_t AngularCorrectionHFPEven=0.;
 TComplex Q_PosHFEven;
+TComplex QEP_hfpeven[jMax];
+
 //PosHFOdd
-Float_t X_posodd=0.,Y_posodd=0.;
 Float_t EP_posodd=0.,EP_finalposodd=0.;
 Float_t AngularCorrectionHFPOdd=0.;
 TComplex Q_PosHFOdd;
+TComplex QEP_hfpodd[jMax];
+
 //NegHFEven
-Float_t X_negeven=0.,Y_negeven=0.;
 Float_t EP_negeven=0.,EP_finalnegeven=0.;
 Float_t AngularCorrectionHFNEven=0.;
 TComplex Q_NegHFEven;
+TComplex QEP_hfneven[jMax];
+
 //NegHFOdd
-Float_t X_negodd=0.,Y_negodd=0.;
 Float_t EP_negodd=0.,EP_finalnegodd=0.;
 Float_t AngularCorrectionHFNOdd=0.;
 TComplex Q_NegHFOdd;
+TComplex QEP_hfnodd[jMax];
+
 //MidTrackerOdd
-Float_t X_trodd=0.,Y_trodd=0.;
 Float_t EP_trodd=0.,EP_finaltrodd=0.;
 Float_t AngularCorrectionTROdd=0.;
 TComplex Q_TROdd;
+TComplex QEP_trodd[jMax];
+
 //MidTrackerEven                                                                                  
-Float_t X_treven=0.,Y_treven=0.;
 Float_t EP_treven=0.,EP_finaltreven=0.;
 Float_t AngularCorrectionTREven=0.;
 TComplex Q_TREven;
-
+TComplex QEP_treven[jMax];
 
 //<pT> and <pT^2> 
 Float_t ptavmid[nCent],pt2avmid[nCent];
@@ -264,6 +270,21 @@ Q_NegHFOdd=TComplex(0.);
 Q_NegHFEven=TComplex(0.);
 Q_TROdd=TComplex(0.);
 Q_TREven=TComplex(0.);
+
+  //Angular Correction Numbers
+  for (int zeroer=0;zeroer<jMax;zeroer++)
+    {
+      QEP_hfodd[zeroer]=TComplex(0.);
+      QEP_hfeven[zeroer]=TComplex(0.);
+      QEP_hfpodd[zeroer]=TComplex(0.);
+      QEP_hfpeven[zeroer]=TComplex(0.);
+      QEP_hfnodd[zeroer]=TComplex(0.);
+      QEP_hfneven[zeroer]=TComplex(0.);
+      QEP_trodd[zeroer]=TComplex(0.);
+      QEP_treven[zeroer]=TComplex(0.);
+    }
+
+
 
 
   chain= new TChain("hiGeneralAndPixelTracksTree");
@@ -629,33 +650,6 @@ void EPPlotting(){
       CaloEta= (TLeaf*) chain2->GetLeaf("Eta");
 
 
-      //v1 Even
-      //Whole HF
-      X_hfeven=0.;
-      Y_hfeven=0.;
-      //Pos HF
-      X_poseven=0.;
-      Y_poseven=0.;
-      //Neg HF
-      X_negeven=0.;
-      Y_negeven=0.;
-      //Tracker
-      X_treven=0.;
-      Y_treven=0.;
-
-      //v1 Odd
-      //Whole HF
-      X_hfodd=0.;
-      Y_hfodd=0.;
-      //Pos HF
-      X_posodd=0.;
-      Y_posodd=0.;
-      //Neg HF
-      X_negodd=0.;
-      Y_negodd=0.;
-      //Tracker
-      X_trodd=0.;
-      Y_trodd=0.;
 
      Q_HFOdd=TComplex(0.);
 Q_HFEven=TComplex(0.);
@@ -665,6 +659,19 @@ Q_NegHFOdd=TComplex(0.);
 Q_NegHFEven=TComplex(0.);
 Q_TROdd=TComplex(0.);
 Q_TREven=TComplex(0.);
+
+      for (int zeroer=0;zeroer<jMax;zeroer++)
+        {
+          QEP_hfodd[zeroer]=TComplex(0.);
+          QEP_hfeven[zeroer]=TComplex(0.);
+          QEP_hfpodd[zeroer]=TComplex(0.);
+          QEP_hfpeven[zeroer]=TComplex(0.);
+          QEP_hfnodd[zeroer]=TComplex(0.);
+          QEP_hfneven[zeroer]=TComplex(0.);
+          QEP_trodd[zeroer]=TComplex(0.);
+          QEP_treven[zeroer]=TComplex(0.);
+        }
+
 
       NumberOfHits= NumTracks->GetValue();
       for (Int_t ii=0;ii<NumberOfHits;ii++)
@@ -684,23 +691,15 @@ Q_TREven=TComplex(0.);
 	      if(eta>0.0)
 		{
 		  //Odd
-		  X_trodd+=TMath::Cos(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
-		  Y_trodd+=TMath::Sin(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
 		  Q_TROdd+=(pT-(pt2avmid[c]/ptavmid[c]))*TComplex::Exp(TComplex::I()*phi);
 		  //Even
-		  X_treven+=TMath::Cos(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
-                  Y_treven+=TMath::Sin(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
-                  Q_TREven+=(pT-(pt2avmid[c]/ptavmid[c]))*TComplex::Exp(TComplex::I()*phi);
+		  Q_TREven+=(pT-(pt2avmid[c]/ptavmid[c]))*TComplex::Exp(TComplex::I()*phi);
 		}//positive eta tracks
 	      else
 		{
 		  //Odd                                                   
-                  X_trodd+=TMath::Cos(phi)*(-1.0*(pT-(pt2avmid[c]/ptavmid[c])));
-                  Y_trodd+=TMath::Sin(phi)*(-1.0*(pT-(pt2avmid[c]/ptavmid[c])));
-                  Q_TROdd+=((-1.0*pT-(pt2avmid[c]/ptavmid[c])))*TComplex::Exp(TComplex::I()*phi);
+                  Q_TROdd+=((-1.0*(pT-(pt2avmid[c]/ptavmid[c]))))*TComplex::Exp(TComplex::I()*phi);
                   //Even
-                  X_treven+=TMath::Cos(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
-                  Y_treven+=TMath::Sin(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
                   Q_TREven+=(pT-(pt2avmid[c]/ptavmid[c]))*TComplex::Exp(TComplex::I()*phi);
 		}//negative eta tracks
 	    }//end of loop over centralities 
@@ -723,39 +722,23 @@ Q_TREven=TComplex(0.);
           if (eta>0.0)
             {
               //Whole HF Odd
-              X_hfodd+=cos(phi)*(Energy);
-              Y_hfodd+=sin(phi)*(Energy);
               Q_HFOdd+=(Energy)*TComplex::Exp(TComplex::I()*phi);
               //Pos HF Odd
-              X_posodd+=cos(phi)*(Energy);
-              Y_posodd+=sin(phi)*(Energy);
               Q_PosHFOdd+=(Energy)*TComplex::Exp(TComplex::I()*phi);
               //Whole HF Even
-              X_hfeven+=cos(phi)*(Energy);
-              Y_hfeven+=sin(phi)*(Energy);
               Q_HFEven+=(Energy)*TComplex::Exp(TComplex::I()*phi);
               //Pos HF Even
-              X_poseven+=cos(phi)*(Energy);
-              Y_poseven+=sin(phi)*(Energy);
               Q_PosHFEven+=(Energy)*TComplex::Exp(TComplex::I()*phi);
             }
           else if (eta<0.0)
             {
               //Whole HF Odd
-              X_hfodd+=cos(phi)*(-1.0*Energy);
-              Y_hfodd+=sin(phi)*(-1.0*Energy);
               Q_HFOdd+=(-1.0*Energy)*TComplex::Exp(TComplex::I()*phi);
               //Neg HF Odd
-              X_negodd+=cos(phi)*(-1.0*Energy);
-              Y_negodd+=sin(phi)*(-1.0*Energy);
               Q_NegHFOdd+=(-1.0*Energy)*TComplex::Exp(TComplex::I()*phi);
               //Whole HF   Even
-              X_hfeven+=cos(phi)*(Energy);
-              Y_hfeven+=sin(phi)*(Energy);
               Q_HFEven+=(Energy)*TComplex::Exp(TComplex::I()*phi);
               // Neg HF Even
-              X_negeven+=cos(phi)*(Energy);
-              Y_negeven+=sin(phi)*(Energy);
               Q_NegHFEven+=(Energy)*TComplex::Exp(TComplex::I()*phi);
             }
         }//end of loop over Calo Hits
@@ -769,32 +752,28 @@ Q_TREven=TComplex(0.);
           //V1 Even
           //Whole HF
           EPhfeven=-999;
-          EPhfeven=(1./1.)*atan2(Y_hfeven,X_hfeven);
-          //EPhfeven=(1./1.)*atan2(Q_HFEven.Im(),Q_HFEven.Re());
+          EPhfeven=(1./1.)*atan2(Q_HFEven.Im(),Q_HFEven.Re());
           if (EPhfeven>(pi)) EPhfeven=(EPhfeven-(TMath::TwoPi()));
           if (EPhfeven<(-1.0*(pi))) EPhfeven=(EPhfeven+(TMath::TwoPi()));
           PsiEvenRaw[c]->Fill(EPhfeven);
 
           //Pos HF
           EP_poseven=-999;
-          EP_poseven=(1./1.)*atan2(Y_poseven,X_poseven);
-          //EP_poseven=(1./1.)*atan2(Q_PosHFEven.Im(),Q_PosHFEven.Re());
+          EP_poseven=(1./1.)*atan2(Q_PosHFEven.Im(),Q_PosHFEven.Re());
           if (EP_poseven>(pi)) EP_poseven=(EP_poseven-(TMath::TwoPi()));
           if (EP_poseven<(-1.0*(pi))) EP_poseven=(EP_poseven+(TMath::TwoPi()));
           PsiPEvenRaw[c]->Fill(EP_poseven);
 
           //Neg HF
           EP_negeven=-999;
-          EP_negeven=(1./1.)*atan2(Y_negeven,X_negeven);
-          //EP_negeven=(1./1.)*atan2(Q_NegHFEven.Im(),Q_NegHFEven.Re());
+          EP_negeven=(1./1.)*atan2(Q_NegHFEven.Im(),Q_NegHFEven.Re());
           if (EP_negeven>(pi)) EP_negeven=(EP_negeven-(TMath::TwoPi()));
           if (EP_negeven<(-1.0*(pi))) EP_negeven=(EP_negeven+(TMath::TwoPi()));
           PsiNEvenRaw[c]->Fill(EP_negeven);
 
 	  //Tracker
 	  EP_treven=-999;
-          EP_treven=(1./1.)*atan2(Y_treven,X_treven);
-          //EP_treven=(1./1.)*atan2(Q_TREven.Im(),Q_TREven.Re());
+          EP_treven=(1./1.)*atan2(Q_TREven.Im(),Q_TREven.Re());
           if (EP_treven>(pi)) EP_treven=(EP_treven-(TMath::TwoPi()));
           if (EP_treven<(-1.0*(pi))) EP_treven=(EP_treven+(TMath::TwoPi()));
 	  PsiTREvenRaw[c]->Fill(EP_treven);
@@ -802,32 +781,28 @@ Q_TREven=TComplex(0.);
           //V1 odd
           //Whole HF
           EPhfodd=-999;
-          EPhfodd=(1./1.)*atan2(Y_hfodd,X_hfodd);
-          //EPhfodd=(1./1.)*atan2(Q_HFOdd.Im(),Q_HFOdd.Re());
+          EPhfodd=(1./1.)*atan2(Q_HFOdd.Im(),Q_HFOdd.Re());
           if (EPhfodd>(pi)) EPhfodd=(EPhfodd-(TMath::TwoPi()));
           if (EPhfodd<(-1.0*(pi))) EPhfodd=(EPhfodd+(TMath::TwoPi()));
           PsiOddRaw[c]->Fill(EPhfodd);
 
           //Pos HF
           EP_posodd=-999;
-          EP_posodd=(1./1.)*atan2(Y_posodd,X_posodd);
-          //EP_posodd=(1./1.)*atan2(Q_PosHFOdd.Im(),Q_PosHFOdd.Re());
+          EP_posodd=(1./1.)*atan2(Q_PosHFOdd.Im(),Q_PosHFOdd.Re());
           if (EP_posodd>(pi)) EP_posodd=(EP_posodd-(TMath::TwoPi()));
           if (EP_posodd<(-1.0*(pi))) EP_posodd=(EP_posodd+(TMath::TwoPi()));
           PsiPOddRaw[c]->Fill(EP_posodd);
 
           //Neg HF
           EP_negodd=-999;
-          EP_negodd=(1./1.)*atan2(Y_negodd,X_negodd);
-          //EP_negodd=(1./1.)*atan2(Q_NegHFOdd.Im(),Q_NegHFOdd.Re());
+          EP_negodd=(1./1.)*atan2(Q_NegHFOdd.Im(),Q_NegHFOdd.Re());
           if (EP_negodd>(pi)) EP_negodd=(EP_negodd-(TMath::TwoPi()));
           if (EP_negodd<(-1.0*(pi))) EP_negodd=(EP_negodd+(TMath::TwoPi()));
           PsiNOddRaw[c]->Fill(EP_negodd);
 
 	  //Tracker
 	  EP_trodd=-999;
-          EP_trodd=(1./1.)*atan2(Y_trodd,X_trodd);
-         //EP_trodd=(1./1.)*atan2(Q_TROdd.Im(),Q_TROdd.Re());
+          EP_trodd=(1./1.)*atan2(Q_TROdd.Im(),Q_TROdd.Re());
           if (EP_trodd>(pi)) EP_trodd=(EP_trodd-(TMath::TwoPi()));
           if (EP_trodd<(-1.0*(pi))) EP_trodd=(EP_trodd+(TMath::TwoPi()));
 	  PsiTROddRaw[c]->Fill(EP_trodd);
@@ -852,32 +827,45 @@ Q_TREven=TComplex(0.);
           AngularCorrectionHFNOdd=0.; EP_finalnegodd=-999.;
           //Tracker
           AngularCorrectionTROdd=0.; EP_finaltrodd=-999.;
+
+
           if((EPhfeven>-500) && (EPhfodd>-500))
             {
               //Compute Angular Corrections
               for (Int_t k=1;k<(jMax+1);k++)
                 {
+
+		  QEP_hfodd[k-1]+=TComplex::Exp(TComplex::I()*k*EPhfodd);//
+                  QEP_hfeven[k-1]+=TComplex::Exp(TComplex::I()*k*EPhfeven);
+                  QEP_hfpodd[k-1]+=TComplex::Exp(TComplex::I()*k*EP_posodd);//
+                  QEP_hfpeven[k-1]+=TComplex::Exp(TComplex::I()*k*EP_poseven);
+                  QEP_hfnodd[k-1]+=TComplex::Exp(TComplex::I()*k*EP_negodd);//
+                  QEP_hfneven[k-1]+=TComplex::Exp(TComplex::I()*k*EP_negeven);
+                  QEP_trodd[k-1]+=TComplex::Exp(TComplex::I()*k*EP_trodd);//
+                  QEP_treven[k-1]+=TComplex::Exp(TComplex::I()*k*EP_treven);//
+
+
                   //v1 even
                   //Whole HF
-                  AngularCorrectionHFEven+=((2./k)*(((-Sinhfeven[c][k-1])*(cos(k*EPhfeven)))+((Coshfeven[c][k-1])*(sin(k*EPhfeven)))));
-                  PsiEvenCorrs[c]->Fill(k-1,fabs(((2./k)*(((-Sinhfeven[c][k-1])*(cos(k*EPhfeven)))+((Coshfeven[c][k-1])*(sin(k*EPhfeven)))))));
+                  AngularCorrectionHFEven+=((2./k)*(((-Sinhfeven[c][k-1])*(QEP_hfeven[k-1].Re()))+((Coshfeven[c][k-1])*(QEP_hfeven[k-1].Im()))));
+                  PsiEvenCorrs[c]->Fill(k-1,fabs(((2./k)*(((-Sinhfeven[c][k-1])*(QEP_hfeven[k-1].Re()))+((Coshfeven[c][k-1])*(QEP_hfeven[k-1].Im()))))));
                   //Pos HF
-                  AngularCorrectionHFPEven+=((2./k)*(((-Sinhfpeven[c][k-1])*(cos(k*EP_poseven)))+((Coshfpeven[c][k-1])*(sin(k*EP_poseven)))));
+                  AngularCorrectionHFPEven+=((2./k)*(((-Sinhfpeven[c][k-1])*(QEP_hfpeven[k-1].Re()))+((Coshfpeven[c][k-1])*(QEP_hfpeven[k-1].Im()))));
                   //Neg HF
-                  AngularCorrectionHFNEven+=((2./k)*(((-Sinhfneven[c][k-1])*(cos(k*EP_negeven)))+((Coshfneven[c][k-1])*(sin(k*EP_negeven)))));
-                  //Tracker
-                  AngularCorrectionTREven+=((2./k)*(((-Sintreven[c][k-1])*(cos(k*EP_treven)))+((Costreven[c][k-1])*(sin(k*EP_treven)))));
-                  //////////////////////////////////////////////////////
+		  AngularCorrectionHFNEven+=((2./k)*(((-Sinhfneven[c][k-1])*(QEP_hfneven[k-1].Re()))+((Coshfneven[c][k-1])*(QEP_hfneven[k-1].Im()))));
+		  //Tracker
+		  AngularCorrectionTREven+=((2./k)*(((-Sintreven[c][k-1])*(QEP_treven[k-1].Re()))+((Costreven[c][k-1])*(QEP_treven[k-1].Im()))));
+		  //////////////////////////////////////////////////////
                   //v1 odd
                   //Whole HF
-                  AngularCorrectionHFOdd+=((2./k)*(((-Sinhfodd[c][k-1])*(cos(k*EPhfodd)))+((Coshfodd[c][k-1])*(sin(k*EPhfodd)))));
-                  PsiOddCorrs[c]->Fill(k-1,fabs(((2./k)*(((-Sinhfodd[c][k-1])*(cos(k*EPhfodd)))+((Coshfodd[c][k-1])*(sin(k*EPhfodd)))))));
+		  AngularCorrectionHFOdd+=((2./k)*(((-Sinhfodd[c][k-1])*(QEP_hfodd[k-1].Re()))+((Coshfodd[c][k-1])*(QEP_hfodd[k-1].Im()))));
+		  PsiOddCorrs[c]->Fill(k-1,fabs(((2./k)*(((-Sinhfodd[c][k-1])*(QEP_hfodd[k-1].Re()))+((Coshfodd[c][k-1])*(QEP_hfodd[k-1].Im()))))));
                   //Pos HF
-                  AngularCorrectionHFPOdd+=((2./k)*(((-Sinhfpodd[c][k-1])*(cos(k*EP_posodd)))+((Coshfpodd[c][k-1])*(sin(k*EP_posodd)))));
-                  //Neg HF
-                  AngularCorrectionHFNOdd+=((2./k)*(((-Sinhfnodd[c][k-1])*(cos(k*EP_negodd)))+((Coshfnodd[c][k-1])*(sin(k*EP_negodd)))));
-                  //Tracker
-                  AngularCorrectionTROdd+=((2./k)*(((-Sintrodd[c][k-1])*(cos(k*EP_trodd)))+((Costrodd[c][k-1])*(sin(k*EP_trodd)))));
+		  AngularCorrectionHFPOdd+=((2./k)*(((-Sinhfpodd[c][k-1])*(QEP_hfpodd[k-1].Re()))+((Coshfpodd[c][k-1])*(QEP_hfpodd[k-1].Im()))));
+		  //Neg HF
+		  AngularCorrectionHFNOdd+=((2./k)*(((-Sinhfnodd[c][k-1])*(QEP_hfnodd[k-1].Re()))+((Coshfnodd[c][k-1])*(QEP_hfnodd[k-1].Im()))));
+		  //Tracker
+		  AngularCorrectionTROdd+=((2./k)*(((-Sintrodd[c][k-1])*(QEP_trodd[k-1].Re()))+((Costrodd[c][k-1])*(QEP_trodd[k-1].Im()))));
                 }//end of angular correction calculation
             }//prevent bad corrections
 
@@ -965,7 +953,7 @@ Q_TREven=TComplex(0.);
 	  //Fill V1 Histograms
           NumberOfHits= NumTracks->GetValue();
           for (Int_t ii=0;ii<NumberOfHits;ii++)
-            {
+	  {
               pT=0.;
               phi=0.;
               eta=0.;
@@ -984,19 +972,16 @@ Q_TREven=TComplex(0.);
                  Vodd=TComplex(0.);
                  Vodd=TComplex::Exp(TComplex::I()*(phi-EPfinalhfodd));
                  Double_t v1odd = Vodd.Re();
-                  V1EvenHFP[c]->Fill(eta,TMath::Cos(phi-EP_finalposeven));
-                  V1EvenHFM[c]->Fill(eta,TMath::Cos(phi-EP_finalnegeven));
-                  V1OddHFM[c]->Fill(eta,TMath::Cos(phi-EP_finalnegodd));
-                  V1OddHFP[c]->Fill(eta,TMath::Cos(phi-EP_finalposodd));
-                  V1EtaOdd[c]->Fill(eta,TMath::Cos(phi-EPfinalhfodd));
-                  //V1EtaOdd[c]->Fill(eta,v1odd);
-                  V1EtaEven[c]->Fill(eta,TMath::Cos(phi-EPfinalhfeven));
-                  //V1EtaEven[c]->Fill(eta,v1even);
-                  V1PtEven[c]->Fill(pT,TMath::Cos(phi-EPfinalhfeven));
-                  //V1PtEven[c]->Fill(pT,v1even);
-                  PTCenters[c]->Fill(pT,pT);
-                  V1PtOdd[c]->Fill(pT,TMath::Cos(phi-EPfinalhfodd));//can find offset later with removing the eta gate here
-                  //V1PtOdd[c]->Fill(pT,v1odd);
+		 V1EvenHFP[c]->Fill(eta,TMath::Cos(phi-EP_finalposeven));
+		 V1EvenHFM[c]->Fill(eta,TMath::Cos(phi-EP_finalnegeven));
+		 V1OddHFM[c]->Fill(eta,TMath::Cos(phi-EP_finalnegodd));
+		 V1OddHFP[c]->Fill(eta,TMath::Cos(phi-EP_finalposodd));
+		 V1EtaOdd[c]->Fill(eta,v1odd);
+		 V1EtaEven[c]->Fill(eta,v1even);
+		 V1PtEven[c]->Fill(pT,v1even);
+		 PTCenters[c]->Fill(pT,pT);
+		 //V1PtOdd[c]->Fill(pT,TMath::Cos(phi-EPfinalhfodd));//can find offset later with removing the eta gate here
+                 V1PtOdd[c]->Fill(pT,v1odd);
                 }//only central tracks
             }//end of loop over tracks
 
@@ -1986,5 +1971,6 @@ Sintrodd[4][9]=-0.000337884;
  
 
 }//End of Angular Corrections Function
+
 
 +EOF
