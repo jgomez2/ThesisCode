@@ -64,7 +64,7 @@ centlo[3]=30;  centhi[3]=40;
 centlo[4]=40;  centhi[4]=50;
 
 //Create the output ROOT file
-TFile *myFile;// = new TFile("blah.root","RECREATE");
+TFile *myFile;// = new TFile("TREP_AngularCorrections_${1}.root","RECREATE");
 
 
 //Make Subdirectories for what will follow
@@ -178,16 +178,17 @@ void Initialize(){
 
   double pt_bin[17]={0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.4,2.8,3.2,3.6,4.5,6.5,9.5,12};
 
-  chain2= new TChain("hiLowPtPixelTracksTree");
+  chain2= new TChain("hiGeneralAndPixelTracksTree");
     chain3=new TChain("hiSelectedVertexTree");
   chain4=new TChain("HFtowersCentralityTree");
 
+ 
     //Tracks Tree 
-    chain2->Add("/hadoop/store/user/jgomez2/ForwardTrees/2011/$b");
+    chain2->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
    //Vertex Tree
-  chain3->Add("/hadoop/store/user/jgomez2/ForwardTrees/2011/$b");
+  chain3->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
   //Centrality Tree
-  chain4->Add("/hadoop/store/user/jgomez2/ForwardTrees/2011/$b"); 
+  chain4->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
 
   NumberOfEvents= chain2->GetEntries();
   //Create the output ROOT file
