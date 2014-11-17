@@ -102,16 +102,16 @@ void Initialize(){
 
  
 
-  chain2= new TChain("hiLowPtPixelTracksTree");
+  chain2= new TChain("hiGeneralAndPixelTracksTree");
     chain3=new TChain("hiSelectedVertexTree");
   chain4=new TChain("HFtowersCentralityTree");
 
     //Tracks Tree 
-    chain2->Add("/hadoop/store/user/jgomez2/ForwardTrees/2011/$b");
+    chain2->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
    //Vertex Tree
-  chain3->Add("/hadoop/store/user/jgomez2/ForwardTrees/2011/$b");
+  chain3->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
   //Centrality Tree
-  chain4->Add("/hadoop/store/user/jgomez2/ForwardTrees/2011/$b"); 
+  chain4->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b"); 
   
    NumberOfEvents= chain2->GetEntries();
   //Create the output ROOT file
@@ -189,7 +189,7 @@ void PTStats(){
        //Filter On Centrality
       CENTRAL= (TLeaf*) chain4->GetLeaf("Bin");
       Centrality= CENTRAL->GetValue();
-      if (Centrality>19) continue;
+      if (Centrality>100) continue;
 
       //Make Vertex Cuts if Necessary
       Vertex=(TLeaf*) chain3->GetLeaf("z");
@@ -214,8 +214,8 @@ void PTStats(){
           for (Int_t c=0;c<nCent;c++)
             {
               myPlots->cd();
-              if ( (Centrality*2.5) > centhi[c] ) continue;
-              if ( (Centrality*2.5) < centlo[c] ) continue;
+              if ( (Centrality*0.5) > centhi[c] ) continue;
+              if ( (Centrality*0.5) < centlo[c] ) continue;
               if (eta>=1.4)
                 {
                   PtStatsWhole[c]->Fill(0,pT);
