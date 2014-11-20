@@ -7,6 +7,7 @@ cat > TwoParticleCorrelation_${1}.C << +EOF
 
 #include<TH1F>
 #include<TProfile>
+#include<TComplex>
 #include<iostream>
 #include<iomanip>
 #include"TFile.h"
@@ -74,7 +75,7 @@ Float_t eta=0.;
 Float_t pTb=0.;
 Float_t phib=0.;
 Float_t etab=0.;
-
+TComplex Qn;
 
 Float_t centlo[nCent];
 Float_t centhi[nCent];
@@ -117,6 +118,7 @@ Int_t TwoParticleCorrelation_${1}(){//put functions in here
 
 void Initialize(){
 
+Qn=TComplex(0.);
   Double_t eta_bin_small[7]={-1.5,-1.0,-0.5,0.0,0.5,1.0,1.5};
  /* Double_t pt_bin[21]={0.4,0.6,0.8,1.0,
                        1.2,1.4,1.6,1.8,
@@ -157,14 +159,14 @@ Double_t pt_bin[17]={0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.4,2.8,3.2,3.6,4.5,6.5
                       4.5,5.0,6.0,7.0,
                       8.0,9.0,10.0,12,
                       14,16,18,20}; */
- chain= new TChain("hiGoodTightMergedTracksTree");
-
-  chain2= new TChain("hiGoodTightMergedTracksTree");
+ 
+ chain= new TChain("hiGeneralAndPixelTracksTree");
+ chain2= new TChain("hiGeneralAndTracksTree");
 
   //Tracks Tree
-  chain->Add("/hadoop/store/user/jgomez2/ForwardTrees/2010/PanicTime/$b");
+  chain->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
 
-  chain2->Add("/hadoop/store/user/jgomez2/ForwardTrees/2010/PanicTime/$b");
+  chain2->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
   //NumberOfEvents= chain->GetEntries();
 
   //Create the output ROOT file
@@ -181,7 +183,7 @@ Double_t pt_bin[17]={0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.4,2.8,3.2,3.6,4.5,6.5
 
   //Creating Characters so that I can make plot names and titles
   char v11ptname[128],v11pttitle[128];
-  char v11etaname[128],v11etatitle[128];
+ // char v11etaname[128],v11etatitle[128];
   char ptcentname[128],ptcenttitle[128];
 
   ///Being Actually making the plots
@@ -194,9 +196,9 @@ Double_t pt_bin[17]={0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.4,2.8,3.2,3.6,4.5,6.5
       V11Pt[i]= new TProfile2D(v11ptname,v11pttitle,16,pt_bin,16,pt_bin);
 
       //V1(eta)[cent] plots
-      sprintf(v11etaname,"V11Eta_%1.0lfto%1.0lf",centlo[i],centhi[i]);
-      sprintf(v11etatitle,"v_{11}(#eta) for %1.0lf-%1.0lf %%", centlo[i],centhi[i]);
-      V11Eta[i] = new TProfile2D(v11etaname,v11etatitle,6,eta_bin_small,6,eta_bin_small);
+     // sprintf(v11etaname,"V11Eta_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+      //sprintf(v11etatitle,"v_{11}(#eta) for %1.0lf-%1.0lf %%", centlo[i],centhi[i]);
+      //V11Eta[i] = new TProfile2D(v11etaname,v11etatitle,6,eta_bin_small,6,eta_bin_small);
 
       //PT Centers
       myPlots->cd();//Find a better home for this
@@ -232,7 +234,7 @@ void CorrelationAnalysis(){
       //Centrality Leaves
       CENTRAL= (TLeaf*) chain->GetLeaf("bin");
       Centrality=CENTRAL->GetValue();
-      if (Centrality>19) continue;
+      if (Centrality>100) continue;
 
       //      std::cout<<Centrality<<std::endl;
 
@@ -240,7 +242,7 @@ void CorrelationAnalysis(){
       //Determine Which Centrality Bin it is
       for (Int_t c=0;c<nCent;c++)
 	{
-	  if ( (Centrality*2.5)<=centhi[c] && (Centrality*2.5)>=centlo[c]) WhichBin=c;
+	  if ( (Centrality*0.5)<=centhi[c] && (Centrality*0.5)>=centlo[c]) WhichBin=c;
 	}
 
       //      std::cout<<WhichBin<<std::endl;
@@ -251,8 +253,8 @@ void CorrelationAnalysis(){
 	  //Centrality Leaves                      
 	  CENTRALB= (TLeaf*) chain2->GetLeaf("bin");
 	  Centralityb=CENTRALB->GetValue();
-	  if(Centralityb>19) continue;
-	  if( ((Centralityb*2.5)<=centhi[WhichBin]) && ((Centralityb*2.5)>=centlo[WhichBin]) ) 
+	  if(Centralityb>100) continue;
+	  if( ((Centralityb*0.5)<=centhi[WhichBin]) && ((Centralityb*0.5)>=centlo[WhichBin]) ) 
 	    {
 	      WhichEvent=z;
 	      Matches=true;
@@ -290,6 +292,7 @@ void CorrelationAnalysis(){
             }
           for (Int_t k=0;k<NumberOfHitsB;k++)
             {
+              Qn=TComplex(0.);
               pTb=0.;
               phib=0.;
               etab=0.;
@@ -298,14 +301,16 @@ void CorrelationAnalysis(){
               etab=TrackEtaB->GetValue(k);
               for (Int_t c=0;c<nCent;c++)
                 {
-                  if ( (Centrality*2.5) > centhi[c] ) continue;
-                  if ( (Centrality*2.5) < centlo[c] ) continue;
-		  V11Eta[c]->Fill(eta,etab,cos(phib-phi));
+                  if ( (Centrality*0.5) > centhi[c] ) continue;
+                  if ( (Centrality*0.5) < centlo[c] ) continue;
+		  //V11Eta[c]->Fill(eta,etab,cos(phib-phi));
                   if(pTb<0 || fabs(etab-eta)<2.0) continue;
 		      else
 		      {
-                  V11Pt[c]->Fill(pT,pTb,cos(phib-phi));
-                  PTCenters[c]->Fill(pTb,pTb);
+		      Qn=TComplex::Exp(TComplex::I()*(phib-phi));
+                      //V11Pt[c]->Fill(pT,pTb,cos(phib-phi));
+                      V11Pt[c]->Fill(pT,pTb,Qn.Re());
+                      PTCenters[c]->Fill(pTb,pTb);
                      } // make sure there is an eta gap between correlated particles
                 }//end of loop over centralities
             }//end of loop over particle b
