@@ -9,6 +9,7 @@ cat > TwoParticleCorrelation_${1}.C << +EOF
 #include<TProfile>
 #include<iostream>
 #include<iomanip>
+#include<TComplex>
 #include"TFile.h"
 #include"TTree.h"
 #include"TLeaf.h"
@@ -94,9 +95,12 @@ TDirectory *v11plots;//where i will store the v11 plots
 
 //2 Particle Correlation plots
 TProfile2D *V11Pt[nCent];//This is where I declare the v11(pT) plots
-TProfile2D *V11Eta[nCent];//This is where I declare the v11(eta) plots
+//TProfile2D *V11Eta[nCent];//This is where I declare the v11(eta) plots
 //PT Bin Centers
 TProfile *PTCenters[nCent];
+
+TComplex Qn;
+
 ///////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////
 /////////////////// END OF GLOBAL VARIABLES ///////////////////////
@@ -124,16 +128,16 @@ void Initialize(){
 
  //Double_t pt_bin[17]={0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.4,2.8,3.2,3.6,4.5,6.5,9.5,12};
   //Tracks Tree
-  chain= new TChain("hiLowPtPixelTracksTree");
+  chain= new TChain("hiGeneralAndPixelTracksTree");
   chain3=new TChain("hiSelectedVertexTree");
   chain4=new TChain("HFtowersCentralityTree");
 
   //Tracks Tree
-  chain->Add("/hadoop/store/user/jgomez2/ForwardTrees/2011/$b");
+  chain->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
   //Vertex Tree
-  chain3->Add("/hadoop/store/user/jgomez2/ForwardTrees/2011/$b");
+  chain3->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
   //Centrality Tree
-  chain4->Add("/hadoop/store/user/jgomez2/ForwardTrees/2011/$b");
+  chain4->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
 
   NumberOfEvents= chain->GetEntries();
 
@@ -151,7 +155,7 @@ void Initialize(){
 
   //Creating Characters so that I can make plot names and titles
   char v11ptname[128],v11pttitle[128];
-  char v11etaname[128],v11etatitle[128];
+ // char v11etaname[128],v11etatitle[128];
   char ptcentname[128],ptcenttitle[128];
 
   ///Being Actually making the plots
@@ -164,9 +168,9 @@ void Initialize(){
       V11Pt[i]= new TProfile2D(v11ptname,v11pttitle,20,pt_bin,20,pt_bin);
 
       //V1(eta)[cent] plots
-      sprintf(v11etaname,"V11Eta_%1.0lfto%1.0lf",centlo[i],centhi[i]);
-      sprintf(v11etatitle,"v_{11}(#eta) for %1.0lf-%1.0lf %%", centlo[i],centhi[i]);
-      V11Eta[i] = new TProfile2D(v11etaname,v11etatitle,6,eta_bin_small,6,eta_bin_small);
+     // sprintf(v11etaname,"V11Eta_%1.0lfto%1.0lf",centlo[i],centhi[i]);
+     // sprintf(v11etatitle,"v_{11}(#eta) for %1.0lf-%1.0lf %%", centlo[i],centhi[i]);
+      //V11Eta[i] = new TProfile2D(v11etaname,v11etatitle,6,eta_bin_small,6,eta_bin_small);
 
       //PT Centers
       myPlots->cd();//Find a better home for this
@@ -202,7 +206,7 @@ void CorrelationAnalysis(){
       //Filter On Centrality      
       CENTRAL= (TLeaf*) chain4->GetLeaf("Bin");                                                         
       Centrality= CENTRAL->GetValue();                                                                 
-      if (Centrality>19) continue;                                                                      
+      if (Centrality>100) continue;                                                                      
 
       //Make Vertex Cuts if Necessary                                                                   
       Vertex=(TLeaf*) chain3->GetLeaf("z");                                                             
@@ -226,6 +230,7 @@ void CorrelationAnalysis(){
             }
           for (Int_t k=j+1;k<NumberOfHits;k++)
             {
+              Qn=TComplex(0.);
               pTb=0.;
               phib=0.;
               etab=0.;
@@ -234,14 +239,16 @@ void CorrelationAnalysis(){
               etab=TrackEta->GetValue(k);
               for (Int_t c=0;c<nCent;c++)
                 {
-                  if ( (Centrality*2.5) > centhi[c] ) continue;
-                  if ( (Centrality*2.5) < centlo[c] ) continue;
-		  V11Eta[c]->Fill(eta,etab,cos(phib-phi));
+                  if ( (Centrality*0.5) > centhi[c] ) continue;
+                  if ( (Centrality*0.5) < centlo[c] ) continue;
+		  //V11Eta[c]->Fill(eta,etab,cos(phib-phi));
                   if(pTb<0 || fabs(etab-eta)<0.7) continue;
 		      else
 		      {
-                  V11Pt[c]->Fill(pT,pTb,cos(phib-phi));
-                  PTCenters[c]->Fill(pTb,pTb);
+		       Qn=TComplex::Exp(TComplex::I()*(phib-phi));
+	               //V11Pt[c]->Fill(pT,pTb,cos(phib-phi));
+                       V11Pt[c]->Fill(pT,pTb,Qn.Re());
+                       PTCenters[c]->Fill(pTb,pTb);
                      } // make sure there is an eta gap between correlated particles
                 }//end of loop over centralities
             }//end of loop over particle b
