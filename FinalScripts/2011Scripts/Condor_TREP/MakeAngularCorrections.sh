@@ -4,46 +4,36 @@
 b=$(sed -ne "${1}{p;q;}" files.txt)
 
 cat > TRV1AngularCorrections_${1}.C << +EOF
-
 #include<TH1F>
 #include<TProfile>
 #include<iostream>
 #include<iomanip>
 #include"TFile.h"
+#include"TComplex.h"
 #include"TTree.h"
 #include"TLeaf.h"
 #include"TChain.h"
-//Functions in this macro///
+
 void Initialize();
 void FillPTStats();
 void AngularCorrections();
-////////////////////////////
 
 
-//Files and chains
+TChain* chain;
 TChain* chain2;
 TChain* chain3;
-TChain* chain4;
 
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
 ////////////           GLOBAL VARIABLES            //////////////////
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
-Float_t pi=TMath::Pi();
-Int_t vterm=1;//Set which order harmonic that this code is meant to measure
+Int_t vterm=1;
 Int_t jMax=10;////Set out to which order correction we would like to apply
 Int_t NumberOfEvents=0;
-//NumberOfEvents=1;
-//NumberOfEvents=2;
-//NumberOfEvents=10;
-//NumberOfEvents=100;
-//NumberOfEvents=50000;
-//NumberOfEvents=100000;
-//NumberOfEvents=5000000;
-//  NumberOfEvents = chain->GetEntries();
+//NumberOfEvents=200;
 
-const Int_t nCent=5;//Number of Centrality classes
+const Int_t nCent=5;
 
 ///Looping Variables
 Int_t Centrality=0; //This will be the centrality variable later
@@ -54,7 +44,6 @@ Float_t phi=0.;
 Float_t eta=0.;
 
 
-
 Float_t centlo[nCent];
 Float_t centhi[nCent];
 centlo[0]=0;  centhi[0]=10;
@@ -63,13 +52,11 @@ centlo[2]=20;  centhi[2]=30;
 centlo[3]=30;  centhi[3]=40;
 centlo[4]=40;  centhi[4]=50;
 
-//Create the output ROOT file
-TFile *myFile;// = new TFile("TREP_AngularCorrections_${1}.root","RECREATE");
+//Create the Root File
+TFile *myFile;
 
-
-//Make Subdirectories for what will follow
-TDirectory *myPlots;//the top level
-
+//Make Subdirectories for the plots
+TDirectory *myPlots;
 //Angular Correction Folders
 TDirectory *angularcorrectionplots;
 //Psi1 Corrections
@@ -85,33 +72,32 @@ TDirectory *postrackercorrs;
 TDirectory *negtrackercorrs;
 TDirectory *midtrackercorrs;
 
-
 //TProfiles to save <pT> and <pT^2> info ....All this is for Ollitrault weights
 Float_t ptavwhole[nCent]={0.},pt2avwhole[nCent]={0.};
 Float_t ptavpos[nCent]={0.},pt2avpos[nCent]={0.};
 Float_t ptavneg[nCent]={0.},pt2avneg[nCent]={0.};
 Float_t ptavmid[nCent]={0.},pt2avmid[nCent]={0.};
 
+
 //Looping Variables
 //v1 even
-Float_t X_wholetracker[nCent]={0.},Y_wholetracker[nCent]={0.},
-  X_postracker[nCent]={0.},Y_postracker[nCent]={0.},
-  X_negtracker[nCent]={0.},Y_negtracker[nCent]={0.},
-  X_midtracker[nCent]={0.},Y_midtracker[nCent]={0.};
+TComplex Q_wholetracker[nCent],Q_postracker[nCent],
+  Q_negtracker[nCent],Q_midtracker[nCent];
+
 
 //v1 odd
-Float_t X_wholeoddtracker[nCent]={0.},Y_wholeoddtracker[nCent]={0.},
-  X_posoddtracker[nCent]={0.},Y_posoddtracker[nCent]={0.},
-  X_negoddtracker[nCent]={0.},Y_negoddtracker[nCent]={0.},
-  X_midoddtracker[nCent]={0.},Y_midoddtracker[nCent]={0.};
+TComplex Q_wholeoddtracker[nCent],Q_posoddtracker[nCent],
+  Q_negoddtracker[nCent],Q_midoddtracker[nCent];
 
 
+//Correction Terms
+TComplex QEP_wholetracker[jMax],QEP_postracker[jMax],QEP_negtracker[jMax],QEP_midtracker[jMax],
+  QEP_wholeoddtracker[jMax],QEP_posoddtracker[jMax],QEP_negoddtracker[jMax],QEP_midoddtracker[jMax];
 
-//////////////////////////////////////
-// The following variables and plots
-// are for the AngularCorrections
-// function
-///////////////////////////////////////
+//Complex EPS
+Float_t Complexwholetracker=0.,Complexpostracker=0.,Complexnegtracker=0.,Complexmidtracker=0.,
+  Complexwholeoddtracker=0.,Complexposoddtracker=0.,Complexnegoddtracker=0.,Complexmidoddtracker=0.;
+
 
 
 //These Will store the angular correction factors
@@ -149,20 +135,7 @@ TProfile *Sinnegoddtracker[nCent];
 TProfile *Cosmidoddtracker[nCent];
 TProfile *Sinmidoddtracker[nCent];
 
-/////////////////////////////////////////
-/// Variables that are used in the //////
-// Flow Analysis function////////////////
-/////////////////////////////////////////
 
-//RAW EP's
-Float_t EPwholetracker=0.,EPpostracker=0.,EPnegtracker=0.,EPmidtracker=0.,
-  EPwholeoddtracker=0.,EPposoddtracker=0.,EPnegoddtracker=0.,EPmidoddtracker=0.;
-
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
-/////////////////// END OF GLOBAL VARIABLES ///////////////////////
-///////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////
 
 //Running the Macro
 Int_t TRV1AngularCorrections_${1}(){//put functions in here
@@ -178,29 +151,36 @@ void Initialize(){
 
   double pt_bin[17]={0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.4,2.8,3.2,3.6,4.5,6.5,9.5,12};
 
-  chain2= new TChain("hiGeneralAndPixelTracksTree");
-    chain3=new TChain("hiSelectedVertexTree");
-  chain4=new TChain("HFtowersCentralityTree");
 
- 
-    //Tracks Tree 
-    chain2->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
-   //Vertex Tree
-  chain3->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
+
+  chain= new TChain("hiGeneralAndPixelTracksTree");
+  chain2=new TChain("hiSelectedVertexTree");
+  chain3=new TChain("HFtowersCentralityTree");
+
+  //Tracks Tree
+  chain->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
+  //Vertex Tree
+  chain2->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
   //Centrality Tree
-  chain4->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
+  chain3->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
 
-  NumberOfEvents= chain2->GetEntries();
-  //Create the output ROOT file
+ NumberOfEvents= chain->GetEntries();
+
+
+  //Create the output root file
   myFile = new TFile("TREP_AngularCorrections_${1}.root","recreate");
 
   //Make Subdirectories for what will follow
   myPlots = myFile->mkdir("Plots");
   myPlots->cd();
 
+
+
+
+
+
   //Angular Correction Folders
   angularcorrectionplots = myPlots->mkdir("AngularCorrectionPlots");
-  //Psi1 Corrections
   //Psi1 Even Corrections
   angcorr1even = angularcorrectionplots->mkdir("FirstOrderEPEvenCorrs");
   wholetrackercorrs = angcorr1even->mkdir("WholeTracker");
@@ -214,7 +194,6 @@ void Initialize(){
   posoddtrackercorrs= angcorr1odd->mkdir("PosOddTracker");
   negoddtrackercorrs= angcorr1odd->mkdir("NegOddTracker");
   midoddtrackercorrs = angcorr1odd->mkdir("MidOddTracker");
-
 
 
   // <Cos> <Sin> plots
@@ -241,6 +220,7 @@ void Initialize(){
   char sinnegoddtrackername[128],sinnegoddtrackertitle[128];
   char sinmidoddtrackername[128],sinmidoddtrackertitle[128];
 
+
   for (int i=0;i<nCent;i++)
     {
 
@@ -256,8 +236,7 @@ void Initialize(){
       sprintf(coswholetrackertitle,"CosValues_WholeTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
       Coswholetracker[i] = new TProfile(coswholetrackername,coswholetrackertitle,jMax,0,jMax);
       Coswholetracker[i]->GetYaxis()->SetTitle("<cos(Xbin*Psi)>");
-
-
+      
       sprintf(sinwholetrackername,"SinValues_WholeTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
       sprintf(sinwholetrackertitle,"SinValues_WholeTracker_%1.0lfto%1.0lf",centlo[i],centhi[i]);
       Sinwholetracker[i] = new TProfile(sinwholetrackername,sinwholetrackertitle,jMax,0,jMax);
@@ -356,120 +335,81 @@ void Initialize(){
       Sinmidoddtracker[i] = new TProfile(sinmidoddtrackername,sinmidoddtrackertitle,jMax,0,jMax);
       Sinmidoddtracker[i]->GetYaxis()->SetTitle("<sin(Xbin*Psi)>");
     }//end of centrality loop
+
+
+
+
 }//end of initialize function
-
-void FillPTStats(){
- 
-//Whole Tracker
-ptavwhole[0]=0.941351;
-ptavwhole[1]=0.951032;
-ptavwhole[2]=0.95263;
-ptavwhole[3]=0.947478;
-ptavwhole[4]=0.937569;
- 
-pt2avwhole[0]=1.19736;
-pt2avwhole[1]=1.22518;
-pt2avwhole[2]=1.23526;
-pt2avwhole[3]=1.23014;
-pt2avwhole[4]=1.21337;
- 
-//Positive Tracker
-ptavpos[0]=0.948274;
-ptavpos[1]=0.958461;
-ptavpos[2]=0.960167;
-ptavpos[3]=0.954984;
-ptavpos[4]=0.944996;
- 
-pt2avpos[0]=1.21445;
-pt2avpos[1]=1.24371;
-pt2avpos[2]=1.25415;
-pt2avpos[3]=1.24917;
-pt2avpos[4]=1.23214;
- 
-//Negative Tracker
-ptavneg[0]=0.934988;
-ptavneg[1]=0.944227;
-ptavneg[2]=0.945735;
-ptavneg[3]=0.940621;
-ptavneg[4]=0.930783;
- 
-pt2avneg[0]=1.18166;
-pt2avneg[1]=1.20821;
-pt2avneg[2]=1.21797;
-pt2avneg[3]=1.21275;
-pt2avneg[4]=1.19621;
- 
-//Mid Tracker
-ptavmid[0]=0.777191;
-ptavmid[1]=0.781748;
-ptavmid[2]=0.780175;
-ptavmid[3]=0.773304;
-ptavmid[4]=0.762743;
- 
-pt2avmid[0]=0.866207;
-pt2avmid[1]=0.881687;
-pt2avmid[2]=0.883832;
-pt2avmid[3]=0.874966;
-pt2avmid[4]=0.857524;
- 
- 
-
-}//end of ptstats function
-
 
 void AngularCorrections(){
 
-  for (Int_t i=0;i<NumberOfEvents;i++)
+  for(Int_t i=0;i<NumberOfEvents;i++)
     {
-      if ( !(i%10000) ) cout << " 2nd round, event # " << i << " / " << NumberOfEvents << endl;
 
-      chain2->GetEntry(i);//grab the ith event
+      // std::cout<<"Event number "<<i<<std::endl;
+
+      chain->GetEntry(i);
+      chain2->GetEntry(i);
       chain3->GetEntry(i);
-      chain4->GetEntry(i);
-  
-      //Grab the Track Leaves
-      NumTracks= (TLeaf*) chain2->GetLeaf("nTracks");
-      TrackMom= (TLeaf*) chain2->GetLeaf("pt");
-      TrackPhi= (TLeaf*) chain2->GetLeaf("phi");
-      TrackEta= (TLeaf*) chain2->GetLeaf("eta");
 
-       //Filter On Centrality
-      CENTRAL= (TLeaf*) chain4->GetLeaf("Bin");
+      //Track Info
+      NumTracks= (TLeaf*) chain->GetLeaf("nTracks");
+      TrackMom= (TLeaf*) chain->GetLeaf("pt");
+      TrackPhi= (TLeaf*) chain->GetLeaf("phi");
+      TrackEta= (TLeaf*) chain->GetLeaf("eta");
+
+      //Centrality Info
+      CENTRAL= (TLeaf*) chain3->GetLeaf("Bin");
       Centrality= CENTRAL->GetValue();
-      if (Centrality>19) continue;
+      if (Centrality>100) continue;
 
-      //Make Vertex Cuts if Necessary
-      Vertex=(TLeaf*) chain3->GetLeaf("z");
+
+      //Vertex Info
+      Vertex=(TLeaf*) chain2->GetLeaf("z");
       Zposition=Vertex->GetValue();
       //if(Zposition<=5) continue;
 
-      //Zero the Looping Variables
-      for (int q=0;q<nCent;q++)
-        {
-          //v1 Even
-          X_wholetracker[q]=0.;
-          Y_wholetracker[q]=0.;
-          X_postracker[q]=0.;
-          Y_postracker[q]=0.;
-          X_negtracker[q]=0.;
-          Y_negtracker[q]=0.;
-          X_midtracker[q]=0.;
-          Y_midtracker[q]=0.;
 
-          //v1 Odd
-          X_wholeoddtracker[q]=0.;
-          Y_wholeoddtracker[q]=0.;
-          X_posoddtracker[q]=0.;
-          Y_posoddtracker[q]=0.;
-          X_negoddtracker[q]=0.;
-          Y_negoddtracker[q]=0.;
-          X_midoddtracker[q]=0.;
-          Y_midoddtracker[q]=0.;
+      Complexwholetracker=0.;
+      Complexpostracker=0.;
+      Complexnegtracker=0.;
+      Complexmidtracker=0.;
+      Complexwholeoddtracker=0.;
+      Complexposoddtracker=0.;
+      Complexnegoddtracker=0.;
+      Complexmidoddtracker=0.;
+
+
+      for (int b=0;b<jMax;b++)
+        {
+          QEP_wholetracker[b]=TComplex(0.);
+          QEP_postracker[b]=TComplex(0.);
+          QEP_negtracker[b]=TComplex(0.);
+          QEP_midtracker[b]=TComplex(0.);
+          QEP_wholeoddtracker[b]=TComplex(0.);
+          QEP_posoddtracker[b]=TComplex(0.);
+          QEP_negoddtracker[b]=TComplex(0.);
+          QEP_midoddtracker[b]=TComplex(0.);
         }
 
-      NumberOfHits= NumTracks->GetValue();
-      for (Int_t ii=0;ii<NumberOfHits;ii++)
+      //Zero the looping variables
+      for (int q=0;q<nCent;q++)
         {
+          Q_wholetracker[q]=TComplex(0.);
+          Q_postracker[q]=TComplex(0.);
+          Q_negtracker[q]=TComplex(0.);
+          Q_midtracker[q]=TComplex(0.);
+          Q_wholeoddtracker[q]=TComplex(0.);
+          Q_posoddtracker[q]=TComplex(0.);
+          Q_negoddtracker[q]=TComplex(0.);
+          Q_midoddtracker[q]=TComplex(0.);
+	}
+          
+
+
+      for(Int_t ii=0;ii<NumTracks->GetValue();ii++)
+        {
+
           pT=0.;
           phi=0.;
           eta=0.;
@@ -480,152 +420,254 @@ void AngularCorrections(){
             {
               continue;
             }
-          for (Int_t c=0;c<nCent;c++)
+	  for (Int_t c=0;c<nCent;c++)
             {
-              if ( (Centrality*2.5) > centhi[c] ) continue;
-              if ( (Centrality*2.5) < centlo[c] ) continue;
-              if(eta>=1.4)
+              if ( (Centrality*0.5) > centhi[c] ) continue;
+              if ( (Centrality*0.5) < centlo[c] ) continue;
+
+              if (fabs(eta)>=1.4)
                 {
-                  X_wholetracker[c]+=cos(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
-                  Y_wholetracker[c]+=sin(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
-                  X_postracker[c]+=cos(phi)*(pT-(pt2avpos[c]/ptavpos[c]));
-                  Y_postracker[c]+=sin(phi)*(pT-(pt2avpos[c]/ptavpos[c]));
-                  //v1 odd
-                  X_wholeoddtracker[c]+=cos(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
-                  //X_wholeoddtracker[c]+=cos(phi)*(pT);
-                  Y_wholeoddtracker[c]+=sin(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
-                  //Y_wholeoddtracker[c]+=sin(phi)*(pT);
-                  X_posoddtracker[c]+=cos(phi)*(pT-(pt2avpos[c]/ptavpos[c]));
-                  //X_posoddtracker[c]+=cos(phi)*(pT);
-                  Y_posoddtracker[c]+=sin(phi)*(pT-(pt2avpos[c]/ptavpos[c]));
-                  //Y_posoddtracker[c]+=sin(phi)*(pT);
-                }
-              else if(eta<=-1.4)
+                  if (eta>0)
+                    {
+                      //Outer Tracker
+                      //Even
+                      Q_wholetracker[c]+=TComplex::Exp(TComplex::I()*phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
+		      //Pos Only
+                      Q_postracker[c]+=TComplex::Exp(TComplex::I()*phi)*(pT-(pt2avpos[c]/ptavpos[c]));
+		      //Odd
+                      Q_wholeoddtracker[c]+=TComplex::Exp(TComplex::I()*phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
+		      //Pos Odd Only
+                      Q_posoddtracker[c]+=TComplex::Exp(TComplex::I()*phi)*(pT-(pt2avpos[c]/ptavpos[c]));
+		    }//Positive outer tracker
+                  else if (eta<0)
+                    {
+                      //Outer Tracker
+                      //Even
+                      Q_wholetracker[c]+=TComplex::Exp(TComplex::I()*phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
+		      //Neg Only
+                      Q_negtracker[c]+=TComplex::Exp(TComplex::I()*phi)*(pT-(pt2avneg[c]/ptavneg[c]));
+		      //Odd
+                      Q_wholeoddtracker[c]+=TComplex::Exp(TComplex::I()*phi)*(-1.0*(pT-(pt2avwhole[c]/ptavwhole[c])));
+		      //Neg Odd Only
+                      Q_negoddtracker[c]+=TComplex::Exp(TComplex::I()*phi)*(-1.0*(pT-(pt2avneg[c]/ptavneg[c])));
+		    }//end of negative outer tracks
+                }//End of outer tracks statement
+              else if (fabs(eta)<=0.6)
                 {
-                  X_wholetracker[c]+=cos(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
-                  Y_wholetracker[c]+=sin(phi)*(pT-(pt2avwhole[c]/ptavwhole[c]));
-                  X_negtracker[c]+=cos(phi)*(pT-(pt2avneg[c]/ptavneg[c]));
-                  Y_negtracker[c]+=sin(phi)*(pT-(pt2avneg[c]/ptavneg[c]));
-                  //v1 odd
-                  X_wholeoddtracker[c]+=cos(phi)*(-1.0*(pT-(pt2avwhole[c]/ptavwhole[c])));
-                  //X_wholeoddtracker[c]+=cos(phi)*(-1.0*pT);
-                  Y_wholeoddtracker[c]+=sin(phi)*(-1.0*(pT-(pt2avwhole[c]/ptavwhole[c])));
-                  //Y_wholeoddtracker[c]+=sin(phi)*(-1.0*pT);
-                  X_negoddtracker[c]+=cos(phi)*(-1.0*(pT-(pt2avneg[c]/ptavneg[c])));
-                  //X_negoddtracker[c]+=cos(phi)*(-1.0*pT);
-                  Y_negoddtracker[c]+=sin(phi)*(-1.0*(pT-(pt2avneg[c]/ptavneg[c])));
-                  //Y_negoddtracker[c]+=sin(phi)*(-1.0*pT);
-                }
-              else if(eta<=0.6 && eta>0)
-                {
-                  X_midtracker[c]+=cos(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
-                  Y_midtracker[c]+=sin(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
-                  //v1 odd
-                  X_midoddtracker[c]+=cos(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
-                  //X_midoddtracker[c]+=cos(phi)*(pT);
-                  Y_midoddtracker[c]+=sin(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
-                  //Y_midoddtracker[c]+=sin(phi)*(pT);
-                }
-              else if(eta>=-0.6 && eta<0)
-                {
-                  X_midtracker[c]+=cos(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
-                  Y_midtracker[c]+=sin(phi)*(pT-(pt2avmid[c]/ptavmid[c]));
-                  //v1 odd
-                  X_midoddtracker[c]+=cos(phi)*(-1.0*(pT-(pt2avmid[c]/ptavmid[c])));
-                  //X_midoddtracker[c]+=cos(phi)*(-1.0*pT);
-                  Y_midoddtracker[c]+=sin(phi)*(-1.0*(pT-(pt2avmid[c]/ptavmid[c])));
-                  //Y_midoddtracker[c]+=sin(phi)*(-1.0*pT);
-                }
-            }//end of loop over centrality classes
-        }//end of loop over tracks
+                  if(eta>0.0)
+                    {
+                      //even
+                      Q_midtracker[c]+=TComplex::Exp(TComplex::I()*phi)*(pT-(pt2avmid[c]/ptavmid[c]));
+		      //odd
+                      Q_midoddtracker[c]+=TComplex::Exp(TComplex::I()*phi)*(pT-(pt2avmid[c]/ptavmid[c]));
+		    }//positive center tracker
+                  else if (eta<0)
+                    {
+                      //even
+                      Q_midtracker[c]+=TComplex::Exp(TComplex::I()*phi)*(pT-(pt2avmid[c]/ptavmid[c]));
+		      //odd
+                      Q_midoddtracker[c]+=TComplex::Exp(TComplex::I()*phi)*(-1.0*(pT-(pt2avmid[c]/ptavmid[c])));
+		    }//negative center tracker
+                }//end of middle tracks statement
+            }//End of loop over centralities
+        }//End of loop over tracks
 
 
-      //Time to fill the appropriate histograms, this will be <cos> <sin>
+      
+      /////////////////////////////////////////////////////////////////////
+      ///////////////////////////////////////////////////////////////////
+      //////////////////////////////////////////////////////////////////
+      //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      // I WAS HERE, finish adding complex stuff//
+      /////////////////////////////////////////////////////////////////////////////
+
+
       for (Int_t c=0;c<nCent;c++)
-        {
-          if ( (Centrality*2.5) > centhi[c] ) continue;
-          if ( (Centrality*2.5) < centlo[c] ) continue;
-          //V1 even
-          //Whole Tracker
-          EPwholetracker=(1./1.)*atan2(Y_wholetracker[c],X_wholetracker[c]);
-          if (EPwholetracker>(pi)) EPwholetracker=(EPwholetracker-(TMath::TwoPi()));
-          if (EPwholetracker<(-1.0*(pi))) EPwholetracker=(EPwholetracker+(TMath::TwoPi()));
+	{
 
-          //Pos Tracker
-          EPpostracker=(1./1.)*atan2(Y_postracker[c],X_postracker[c]);
-          if (EPpostracker>(pi)) EPpostracker=(EPpostracker-(TMath::TwoPi()));
-          if (EPpostracker<(-1.0*(pi))) EPpostracker=(EPpostracker+(TMath::TwoPi()));
+	  if ( (Centrality*0.5) > centhi[c] ) continue; 
+	  if ( (Centrality*0.5) < centlo[c] ) continue; 
 
-          //neg Tracker
-          EPnegtracker=(1./1.)*atan2(Y_negtracker[c],X_negtracker[c]);
-          if (EPnegtracker>(pi)) EPnegtracker=(EPnegtracker-(TMath::TwoPi()));
-          if (EPnegtracker<(-1.0*(pi))) EPnegtracker=(EPnegtracker+(TMath::TwoPi()));
+	  //V1 Even
+	  //Whole Tracker
+	  Complexwholetracker=(1./1.)*TMath::ATan2(Q_wholetracker[c].Im(),Q_wholetracker[c].Re());
+	  if (Complexwholetracker>(TMath::Pi())) Complexwholetracker=(Complexwholetracker-(TMath::TwoPi()));
+          if (Complexwholetracker<(-1.0*TMath::Pi())) Complexwholetracker=(Complexwholetracker+(TMath::TwoPi()));
 
-          //mid Tracker
-          EPmidtracker=(1./1.)*atan2(Y_midtracker[c],X_midtracker[c]);
-          if (EPmidtracker>(pi)) EPmidtracker=(EPmidtracker-(TMath::TwoPi()));
-          if (EPmidtracker<(-1.0*(pi))) EPmidtracker=(EPmidtracker+(TMath::TwoPi()));
 
-          //V1 Odd
-          //Whole Tracker
-          EPwholeoddtracker=(1./1.)*atan2(Y_wholeoddtracker[c],X_wholeoddtracker[c]);
-          if (EPwholeoddtracker>(pi)) EPwholeoddtracker=(EPwholeoddtracker-(TMath::TwoPi()));
-          if (EPwholeoddtracker<(-1.0*(pi))) EPwholeoddtracker=(EPwholeoddtracker+(TMath::TwoPi()));
+	  //Pos Tracker
+	  Complexpostracker=(1./1.)*TMath::ATan2(Q_postracker[c].Im(),Q_postracker[c].Re());
+	  if (Complexpostracker>(TMath::Pi())) Complexpostracker=(Complexpostracker-(TMath::TwoPi()));
+          if (Complexpostracker<(-1.0*TMath::Pi())) Complexpostracker=(Complexpostracker+(TMath::TwoPi()));
 
-          //Pos Tracker
-          EPposoddtracker=(1./1.)*atan2(Y_posoddtracker[c],X_posoddtracker[c]);
-          if (EPposoddtracker>(pi)) EPposoddtracker=(EPposoddtracker-(TMath::TwoPi()));
-          if (EPposoddtracker<(-1.0*(pi))) EPposoddtracker=(EPposoddtracker+(TMath::TwoPi()));
+	  	  
+	  //Neg Tracker
+	  Complexnegtracker=(1./1.)*TMath::ATan2(Q_negtracker[c].Im(),Q_negtracker[c].Re());
+	  if (Complexnegtracker>(TMath::Pi())) Complexnegtracker=(Complexnegtracker-(TMath::TwoPi()));
+          if (Complexnegtracker<(-1.0*TMath::Pi())) Complexnegtracker=(Complexnegtracker+(TMath::TwoPi()));
 
-          //neg Tracker
-          EPnegoddtracker=(1./1.)*atan2(Y_negoddtracker[c],X_negoddtracker[c]);
-          if (EPnegoddtracker>(pi)) EPnegoddtracker=(EPnegoddtracker-(TMath::TwoPi()));
-          if (EPnegoddtracker<(-1.0*(pi))) EPnegoddtracker=(EPnegoddtracker+(TMath::TwoPi()));
 
-          //mid Tracker
-          EPmidoddtracker=(1./1.)*atan2(Y_midoddtracker[c],X_midoddtracker[c]);
-          if (EPmidoddtracker>(pi)) EPmidoddtracker=(EPmidoddtracker-(TMath::TwoPi()));
-          if (EPmidoddtracker<(-1.0*(pi))) EPmidoddtracker=(EPmidoddtracker+(TMath::TwoPi()));
+	  //Mid Tracker
+	  Complexmidtracker=(1./1.)*TMath::ATan2(Q_midtracker[c].Im(),Q_midtracker[c].Re());
+	  if (Complexmidtracker>(TMath::Pi())) Complexmidtracker=(Complexmidtracker-(TMath::TwoPi()));
+          if (Complexmidtracker<(-1.0*TMath::Pi())) Complexmidtracker=(Complexmidtracker+(TMath::TwoPi()));
+	  
 
-          for (int k=1;k<(jMax+1);k++)
-            {
-              //v1 odd
-              //Whole Tracker
-              Coswholeoddtracker[c]->Fill(k-1,cos(k*EPwholeoddtracker));
-              Sinwholeoddtracker[c]->Fill(k-1,sin(k*EPwholeoddtracker));
+	  //V1 Odd
+	  //Whole Tracker                                                                    
+	  Complexwholeoddtracker=(1./1.)*TMath::ATan2(Q_wholeoddtracker[c].Im(),Q_wholeoddtracker[c].Re());
+	  if (Complexwholeoddtracker>(TMath::Pi())) Complexwholeoddtracker=(Complexwholeoddtracker-(TMath::TwoPi()));
+	  if (Complexwholeoddtracker<(-1.0*TMath::Pi())) Complexwholeoddtracker=(Complexwholeoddtracker+(TMath::TwoPi()));
+	  
+          //Posodd Tracker                                                               
+	  Complexposoddtracker=(1./1.)*TMath::ATan2(Q_posoddtracker[c].Im(),Q_posoddtracker[c].Re());
+	  if (Complexposoddtracker>(TMath::Pi())) Complexposoddtracker=(Complexposoddtracker-(TMath::TwoPi()));
+          if (Complexposoddtracker<(-1.0*TMath::Pi())) Complexposoddtracker=(Complexposoddtracker+(TMath::TwoPi()));
 
-              //Pos Tracker
-              Cosposoddtracker[c]->Fill(k-1,cos(k*EPposoddtracker));
-              Sinposoddtracker[c]->Fill(k-1,sin(k*EPposoddtracker));
+	  
 
-              //Neg Tracker
-              Cosnegoddtracker[c]->Fill(k-1,cos(k*EPnegoddtracker));
-              Sinnegoddtracker[c]->Fill(k-1,sin(k*EPnegoddtracker));
+          //Neg Tracker                                                                       
+	  Complexnegoddtracker=(1./1.)*TMath::ATan2(Q_negoddtracker[c].Im(),Q_negoddtracker[c].Re());
+	  if (Complexnegoddtracker>(TMath::Pi())) Complexnegoddtracker=(Complexnegoddtracker-(TMath::TwoPi()));
+          if (Complexnegoddtracker<(-1.0*TMath::Pi())) Complexnegoddtracker=(Complexnegoddtracker+(TMath::TwoPi()));
 
-              //Mid Tracker
-              Cosmidoddtracker[c]->Fill(k-1,cos(k*EPmidoddtracker));
-              Sinmidoddtracker[c]->Fill(k-1,sin(k*EPmidoddtracker));
 
-              //v1 even
-              //Whole Tracker
-              Coswholetracker[c]->Fill(k-1,cos(k*EPwholetracker));
-              Sinwholetracker[c]->Fill(k-1,sin(k*EPwholetracker));
+          //Mid Tracker                                                                       
+	  Complexmidoddtracker=(1./1.)*TMath::ATan2(Q_midoddtracker[c].Im(),Q_midoddtracker[c].Re());
+	  if (Complexmidoddtracker>(TMath::Pi())) Complexmidoddtracker=(Complexmidoddtracker-(TMath::TwoPi()));
+          if (Complexmidoddtracker<(-1.0*TMath::Pi())) Complexmidoddtracker=(Complexmidoddtracker+(TMath::TwoPi()));
+	  
 
-              //Pos Tracker
-              Cospostracker[c]->Fill(k-1,cos(k*EPpostracker));
-              Sinpostracker[c]->Fill(k-1,sin(k*EPpostracker));
+	  for (Int_t k=1;k<(jMax+1);k++)
+	    {
+	      QEP_wholetracker[k-1]=TComplex::Exp(TComplex::I()*k*Complexwholetracker);
+	      QEP_postracker[k-1]=TComplex::Exp(TComplex::I()*k*Complexpostracker);
+	      QEP_negtracker[k-1]=TComplex::Exp(TComplex::I()*k*Complexnegtracker);
+	      QEP_midtracker[k-1]=TComplex::Exp(TComplex::I()*k*Complexmidtracker);
+	      QEP_wholeoddtracker[k-1]=TComplex::Exp(TComplex::I()*k*Complexwholeoddtracker);
+	      QEP_posoddtracker[k-1]=TComplex::Exp(TComplex::I()*k*Complexposoddtracker);
+	      QEP_negoddtracker[k-1]=TComplex::Exp(TComplex::I()*k*Complexnegoddtracker);
+	      QEP_midoddtracker[k-1]=TComplex::Exp(TComplex::I()*k*Complexmidoddtracker);
 
-              //Neg Tracker
-              Cosnegtracker[c]->Fill(k-1,cos(k*EPnegtracker));
-              Sinnegtracker[c]->Fill(k-1,sin(k*EPnegtracker));
+	      
+	      //V1 odd
+	      //Whole tracker
+	      //Coswholeoddtracker[c]->Fill(k-1,TMath::Cos(k*EPwholeoddtracker));
+	      Coswholeoddtracker[c]->Fill(k-1,QEP_wholeoddtracker[k-1].Re());
+	      //Sinwholeoddtracker[c]->Fill(k-1,TMath::Sin(k*EPwholeoddtracker));
+	      Sinwholeoddtracker[c]->Fill(k-1,QEP_wholeoddtracker[k-1].Im());
+	      //ComplexCosFactors[c]->Fill(k-1,QEP_wholetracker[k-1].Re());
+	      //ComplexSinFactors[c]->Fill(k-1,QEP_wholetracker[k-1].Im());
+	      
+	      //Pos tracker
+	      //Cosposoddtracker[c]->Fill(k-1,TMath::Cos(k*EPposoddtracker));
+	      //Sinposoddtracker[c]->Fill(k-1,TMath::Sin(k*EPposoddtracker));
+	      Cosposoddtracker[c]->Fill(k-1,QEP_posoddtracker[k-1].Re());
+              Sinposoddtracker[c]->Fill(k-1,QEP_posoddtracker[k-1].Im());
 
-              //Mid Tracker
-              Cosmidtracker[c]->Fill(k-1,cos(k*EPmidtracker));
-              Sinmidtracker[c]->Fill(k-1,sin(k*EPmidtracker));
-            }//end of loop over K
-        }//end of loop over centrality clases
-    }//end of loop over events
-    myFile->Write();
-}//End of Angular Corrections Function
+
+	      //Neg Tracker
+	      //Cosnegoddtracker[c]->Fill(k-1,TMath::Cos(k*EPnegoddtracker));
+	      //Sinnegoddtracker[c]->Fill(k-1,TMath::Sin(k*EPnegoddtracker));
+	      Cosnegoddtracker[c]->Fill(k-1,QEP_negoddtracker[k-1].Re());
+              Sinnegoddtracker[c]->Fill(k-1,QEP_negoddtracker[k-1].Im());
+
+	      
+	      //Mid tracker
+	      //Cosmidoddtracker[c]->Fill(k-1,TMath::Cos(k*EPmidoddtracker));
+	      //Sinmidoddtracker[c]->Fill(k-1,TMath::Sin(k*EPmidoddtracker));
+	      Cosmidoddtracker[c]->Fill(k-1,QEP_midoddtracker[k-1].Re());
+              Sinmidoddtracker[c]->Fill(k-1,QEP_midoddtracker[k-1].Im());
+
+
+	      //V1 Even                                                     
+	      //Whole tracker
+              //Coswholetracker[c]->Fill(k-1,TMath::Cos(k*EPwholetracker));
+              //Sinwholetracker[c]->Fill(k-1,TMath::Sin(k*EPwholetracker));
+	      Coswholetracker[c]->Fill(k-1,QEP_wholetracker[k-1].Re());
+              Sinwholetracker[c]->Fill(k-1,QEP_wholetracker[k-1].Im());
+
+
+	      //Pos tracker                                
+	      //Cospostracker[c]->Fill(k-1,TMath::Cos(k*EPpostracker));
+	      //Sinpostracker[c]->Fill(k-1,TMath::Sin(k*EPpostracker));
+	      Cospostracker[c]->Fill(k-1,QEP_postracker[k-1].Re());
+              Sinpostracker[c]->Fill(k-1,QEP_postracker[k-1].Im());
+	      
+
+	      //Neg Tracker                                                                   
+	      //Cosnegtracker[c]->Fill(k-1,TMath::Cos(k*EPnegtracker));
+	      //Sinnegtracker[c]->Fill(k-1,TMath::Sin(k*EPnegtracker));
+	      Cosnegtracker[c]->Fill(k-1,QEP_negtracker[k-1].Re());
+              Sinnegtracker[c]->Fill(k-1,QEP_negtracker[k-1].Im());
+
+	      //Mid tracker
+	      Cosmidtracker[c]->Fill(k-1,QEP_midtracker[k-1].Re());
+	      Sinmidtracker[c]->Fill(k-1,QEP_midtracker[k-1].Im());
+	    }//end of loop over nth order flattening params
+	}//End of loop over centrality classes
+    }//End of loop over events
+  myFile->Write();
+}//End of angular corrections function
+
+void FillPTStats(){
+
+
+  //Whole Tracker
+  ptavwhole[0]=0.941351;
+  ptavwhole[1]=0.951032;
+  ptavwhole[2]=0.95263;
+  ptavwhole[3]=0.947478;
+  ptavwhole[4]=0.937569;
+
+  pt2avwhole[0]=1.19736;
+  pt2avwhole[1]=1.22518;
+  pt2avwhole[2]=1.23526;
+  pt2avwhole[3]=1.23014;
+  pt2avwhole[4]=1.21337;
+
+  //Positive Tracker
+  ptavpos[0]=0.948274;
+  ptavpos[1]=0.958461;
+  ptavpos[2]=0.960167;
+  ptavpos[3]=0.954984;
+  ptavpos[4]=0.944996;
+
+  pt2avpos[0]=1.21445;
+  pt2avpos[1]=1.24371;
+  pt2avpos[2]=1.25415;
+  pt2avpos[3]=1.24917;
+  pt2avpos[4]=1.23214;
+
+  //Negative Tracker
+  ptavneg[0]=0.934988;
+  ptavneg[1]=0.944227;
+  ptavneg[2]=0.945735;
+  ptavneg[3]=0.940621;
+  ptavneg[4]=0.930783;
+
+  pt2avneg[0]=1.18166;
+  pt2avneg[1]=1.20821;
+  pt2avneg[2]=1.21797;
+  pt2avneg[3]=1.21275;
+  pt2avneg[4]=1.19621;
+
+
+  //Mid Tracker
+  ptavmid[0]=0.777191;
+  ptavmid[1]=0.781748;
+  ptavmid[2]=0.780175;
+  ptavmid[3]=0.773304;
+  ptavmid[4]=0.762743;
+
+  pt2avmid[0]=0.866207;
+  pt2avmid[1]=0.881687;
+  pt2avmid[2]=0.883832;
+  pt2avmid[3]=0.874966;
+  pt2avmid[4]=0.857524;
+
+
+}//end of pt stats function
+
 
 +EOF
