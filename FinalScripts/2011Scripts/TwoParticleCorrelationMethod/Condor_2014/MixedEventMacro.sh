@@ -45,7 +45,7 @@ void CorrelationAnalysis();
 //Files and chains
 TChain* chain;
 TChain* chain2;
-
+TChain* chain3;
 /////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////
 ////////////           GLOBAL VARIABLES            //////////////////
@@ -57,7 +57,7 @@ Int_t NumberOfEvents=0;
 //NumberOfEvents=2;
 //NumberOfEvents=20;
 //NumberOfEvents=100;
-  NumberOfEvents=5000;
+//  NumberOfEvents=5000;
 //NumberOfEvents=100000;
 //NumberOfEvents=5000000;
 //  NumberOfEvents = chain->GetEntries();
@@ -161,13 +161,18 @@ Double_t pt_bin[17]={0.4,0.6,0.8,1.0,1.2,1.4,1.6,1.8,2.0,2.4,2.8,3.2,3.6,4.5,6.5
                       14,16,18,20}; */
  
  chain= new TChain("hiGeneralAndPixelTracksTree");
- chain2= new TChain("hiGeneralAndTracksTree");
+ chain2= new TChain("hiGeneralAndPixelTracksTree");
+ chain3 = new TChain("HFtowersCentralityTree");
 
   //Tracks Tree
   chain->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
 
+  
   chain2->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");
-  //NumberOfEvents= chain->GetEntries();
+
+  chain3->Add("/hadoop/store/user/jgomez2/DataSkims/2011/2011MinBiasReReco/FinalTrees/$b");  
+
+  NumberOfEvents= chain->GetEntries();
 
   //Create the output ROOT file
   myFile = new TFile("TwoParticleCorrelationAnalysis_${1}.root","recreate");
@@ -217,8 +222,10 @@ void CorrelationAnalysis(){
     {//First loop over all events
       if ( !(i%10000) ) cout << " 1st round, event # " << i << " / " << NumberOfEvents << endl;
 
-            chain->GetEntry(i);
-      
+      chain->GetEntry(i);
+      chain2->GetEntry(i);
+      chain3->GetEntry(i);
+
       WhichBin=-1;
       WhichEvent=-1;
       Matches=false;
@@ -232,7 +239,7 @@ void CorrelationAnalysis(){
       TrackPhi= (TLeaf*) chain->GetLeaf("phi");
       TrackEta= (TLeaf*) chain->GetLeaf("eta");
       //Centrality Leaves
-      CENTRAL= (TLeaf*) chain->GetLeaf("bin");
+      CENTRAL= (TLeaf*) chain3->GetLeaf("Bin");
       Centrality=CENTRAL->GetValue();
       if (Centrality>100) continue;
 
@@ -251,7 +258,7 @@ void CorrelationAnalysis(){
 	{
 	  chain2->GetEntry(z);
 	  //Centrality Leaves                      
-	  CENTRALB= (TLeaf*) chain2->GetLeaf("bin");
+	  CENTRALB= (TLeaf*) chain3->GetLeaf("Bin");
 	  Centralityb=CENTRALB->GetValue();
 	  if(Centralityb>100) continue;
 	  if( ((Centralityb*0.5)<=centhi[WhichBin]) && ((Centralityb*0.5)>=centlo[WhichBin]) ) 
